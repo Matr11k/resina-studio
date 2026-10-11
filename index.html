@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#162d28"><meta name="description" content="Orçamentos e gestão do seu ateliê de impressão 3D em resina."><title>Resina Studio — Seu ateliê, organizado</title><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" type="image/svg+xml"><style>@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{--ink:#21382e;--muted:#7a817b;--green:#193d31;--lime:#d3e9a4;--line:#e6e8df;--paper:#f5f5ef;--white:#fff;--red:#b43b35}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',Arial,sans-serif;font-size:14px}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.6;cursor:wait}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin-top:0}h1,h2,h3{font-family:Manrope,Arial,sans-serif}h1{font-size:clamp(25px,2.5vw,36px);letter-spacing:-1.4px;line-height:1.25;margin-bottom:12px}h2{font-size:19px;letter-spacing:-.5px}h3{font-size:17px}p{line-height:1.65}.muted,small{color:var(--muted)}small{font-size:12px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;margin-bottom:14px}.layout{display:grid;grid-template-columns:236px 1fr;min-height:100vh}.sidebar{background:#172e27;color:#e6eee3;padding:35px 23px;position:fixed;inset:0 auto 0 0;width:236px;display:flex;flex-direction:column;z-index:2}.brand{display:flex;align-items:center;font:800 22px Manrope,sans-serif;letter-spacing:-1px;gap:8px;white-space:nowrap}.brand img{width:32px;height:32px}.brand span{font-weight:400;margin-left:-7px;font-size:17px;color:#b2c3ad}.sidebar-label{font-size:9px;letter-spacing:2px;color:#9aac9f;margin-top:57px;margin-left:13px}nav{display:grid;gap:7px}.nav-item{padding:14px 13px;display:flex;gap:13px;align-items:center;border:0;background:none;color:#b5c5b9;text-align:left;border-radius:8px;font-weight:500}.nav-item span{font-size:20px;line-height:1}.nav-item:hover{background:#234337}.nav-item.active{background:#cfe4aa;color:#1c3529}.sidebar-bottom{margin-top:auto}.profile{border-top:1px solid #355042;padding-top:24px;display:flex;align-items:center;gap:11px;margin-bottom:12px}.profile b{display:block;font-size:13px;max-width:140px;overflow:hidden;text-overflow:ellipsis}.profile small{display:block;margin-top:4px;color:#a9bcae}.avatar{background:#355547;display:grid;place-items:center;width:37px;height:37px;border-radius:50%;font-weight:700;flex-shrink:0}.avatar.light{background:#e5edd8;color:#446139;width:46px;height:46px}.main{grid-column:2;padding:0 42px 24px;min-width:0}.topbar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);height:78px;color:var(--muted);font-size:12px}.sync{background:none;border:none;color:#54705a;font-size:12px;padding:12px}.page-header{display:flex;justify-content:space-between;align-items:center;gap:24px;margin:40px 0 30px}.page-header p:not(.eyebrow){color:var(--muted);margin:0;font-size:13px}.header-actions{display:flex;gap:10px;flex-shrink:0}.btn{border:0;border-radius:7px;padding:13px 19px;font-size:12px;font-weight:700;transition:transform .15s,background .15s;display:inline-block}.btn:hover{transform:translateY(-1px)}.primary{background:var(--green);color:#fff}.primary:hover{background:#285341}.secondary{background:#fff;border:1px solid #dce1d5;color:var(--ink)}.lime{background:var(--lime);color:#243d2e}.ghost{background:transparent;border:1px solid #698476;color:#e0ecdf}.text-btn{background:none;border:0;color:#4c7452;font-size:12px;font-weight:600;padding:8px 0}.sidebar .text-btn{color:#b5c5b9}.wide{width:100%;margin-top:13px}.demo-banner{background:#f0ecd7;border:1px solid #e8dfb6;color:#7a663a;padding:10px 15px;font-size:12px;line-height:1.5;margin-top:16px;border-radius:7px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}.stat{background:#fff;border:1px solid var(--line);padding:22px 20px;border-radius:10px}.stat>span{font-size:12px;color:#727e72;display:block}.stat strong{display:block;font:700 29px Manrope,sans-serif;letter-spacing:-1px;margin:12px 0}.stat small{font-size:10px;line-height:1.5;display:block}.dashboard-grid{display:grid;grid-template-columns:minmax(0,1fr) 265px;gap:23px}.panel{background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden}.panel-heading{padding:23px 25px;display:flex;justify-content:space-between;align-items:center;gap:15px}.panel-heading h2{margin-bottom:5px}.panel-heading p{font-size:12px;margin:0;color:var(--muted)}.tip-card{background:#e6eacf;border:1px solid #dde1c3;border-radius:11px;padding:27px 24px;position:relative;overflow:hidden}.tip-card .eyebrow{color:#6d7d44;font-size:9px}.tip-card h2{font-size:24px;line-height:1.4}.tip-card p:not(.eyebrow){font-size:12px;color:#66744e}.tip-card .lime{background:#fff;width:100%}.tip-rule{font-size:8px;letter-spacing:1.4px;border-top:1px solid #ccd4b5;padding-top:20px;margin:25px 0 20px}.table-scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;white-space:nowrap;text-align:left}th{font-size:9px;letter-spacing:1px;color:#899286;border-block:1px solid var(--line);padding:14px 20px;font-weight:600}td{padding:19px 20px;font-size:12px;border-bottom:1px solid #eff0e9}td small{display:block;margin-top:7px;font-size:10px}tr:last-child td{border-bottom:0}.badge{display:inline-block;border-radius:5px;background:#eeefe9;color:#7b846f;font-size:10px;padding:6px 9px}.badge.approved{background:#e3eedb;color:#497044}.badge.declined{background:#f6e8e5;color:#a15e54}.negative{color:var(--red)!important}.empty{text-align:center;padding:48px 30px}.empty-symbol{font-size:53px;color:#9eae8b;display:block;margin-bottom:15px}.empty p{font-size:13px;color:var(--muted);max-width:340px;margin-inline:auto}.footer{font-size:10px;display:flex;justify-content:space-between;color:#999e91;margin-top:44px;border-top:1px solid var(--line);padding-top:18px}.filterbar{padding:20px;display:flex;gap:15px;align-items:center}.search{position:relative;flex:1;display:flex;align-items:center;border:1px solid var(--line);border-radius:6px;padding-left:12px}.search span{font-size:22px;color:#8a9584}.search input{border:0;box-shadow:none}.filterbar select{width:170px}.filterbar>span{font-size:11px;color:var(--muted)}input,select,textarea{width:100%;background:#fff;border:1px solid #dfe4da;border-radius:6px;color:var(--ink);padding:12px;outline:none;min-height:43px}input:focus,select:focus,textarea:focus{border-color:#6f9561;box-shadow:0 0 0 3px #d9e7ce70}button:focus-visible,a:focus-visible{outline:3px solid #9dc66e;outline-offset:4px}.field{display:flex;flex-direction:column;gap:8px;min-width:0}.field>span{font-size:11px;color:#65745e;font-weight:500}.fields{display:grid;grid-template-columns:1fr 1fr;gap:20px}.calculator-grid{display:grid;grid-template-columns:minmax(0,1fr) 318px;gap:26px;align-items:start}.form-stack{display:grid;gap:20px}.form-panel{padding:26px}.section-title{display:flex;gap:15px;align-items:flex-start;margin-bottom:25px}.section-title>span{font-size:11px;background:#edf0e3;display:grid;place-items:center;min-width:31px;height:31px;border-radius:50%;color:#657952}.section-title h2{margin-bottom:6px}.section-title p{font-size:12px;color:var(--muted);margin:0;max-width:450px}.plate{border:1px solid #e5e9de;border-radius:8px;padding:18px;margin-bottom:15px;background:#fcfcf8}.plate-heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;min-height:23px}.plate-heading b{font-size:12px}.inline-info{margin-top:20px;background:#f1f4e9;padding:13px 15px;color:#738061;font-size:11px;line-height:1.6;border-radius:6px}.services{display:grid;gap:10px;margin-bottom:24px}.service{display:flex;align-items:center;gap:11px;border:1px solid #e6eadf;border-radius:6px;padding:13px;cursor:pointer;font-size:12px}.service input{width:16px;height:16px;min-height:16px;accent-color:var(--green)}.service b{margin-left:auto;flex-shrink:0;font-size:11px}.form-panel>.field{margin-top:20px}.result-column{position:sticky;top:20px}.result-card{background:#1d3a2f;color:#eff4e8;border-radius:12px;padding:26px}.result-card .eyebrow{color:#bdd297;font-size:9px}.result-label{font-size:12px;color:#b7c8b7;display:block;margin-top:25px}.result-total{display:block;font:700 38px Manrope,sans-serif;letter-spacing:-1.4px;margin:7px 0}.result-card>p{font-size:12px;color:#d2e1c6}.result-card>p span{font-size:10px;color:#a8bea5}.result-profit{background:#2b4c3c;border:1px solid #456346;border-radius:7px;padding:15px;margin:23px 0;display:grid;grid-template-columns:1fr auto;gap:9px;font-size:12px}.result-profit b{color:#d3e9a4;font-size:16px}.result-profit small{grid-column:1/-1;color:#b1c6a3;font-size:10px}.breakdown>div{display:flex;justify-content:space-between;gap:12px;margin:15px 0;font-size:11px;color:#b9cabc}.breakdown b{color:#e3edda;font-weight:500;white-space:nowrap}.breakdown .subtotal{border-top:1px solid #45614f;padding-top:16px;color:#fff}.result-hint{color:#cde0ac;font-size:10px;line-height:1.7;margin-top:12px}.formula-note{border:1px solid var(--line);border-radius:8px;padding:16px;margin-top:16px;background:#fff;font-size:11px}.formula-note p{color:var(--muted);margin:8px 0 0}.snapshot-note{font-size:10px;line-height:1.7;color:#929b88;padding:0 9px;margin-top:18px}.notice{padding:14px;background:#edf0e1;border-radius:7px;font-size:12px;line-height:1.6;margin:15px 0;color:#596b44}.notice.error{background:#fce8e3;color:#a13c32}.client-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.client-card{padding:25px;background:#fff;border:1px solid var(--line);border-radius:10px}.client-card h3{margin-top:17px;margin-bottom:8px}.client-card p{font-size:11px;overflow-wrap:anywhere}.client-meta{display:flex;justify-content:space-between;font-size:11px;border-top:1px solid var(--line);padding-top:17px;margin:23px 0 13px}.client-grid>.empty{grid-column:1/-1}.service-prices{display:grid;grid-template-columns:1fr 1fr;gap:20px}#settings-form{display:grid;gap:22px;max-width:920px}.form-end{display:flex;justify-content:flex-end}#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%) translateY(100px);transition:transform .2s;background:#273d2d;color:#fff;border-radius:8px;padding:15px 25px;box-shadow:0 8px 40px #0002;z-index:10;max-width:min(90vw,600px);font-size:13px;line-height:1.5}#toast.show{transform:translateX(-50%) translateY(0)}.loading{padding:100px;text-align:center;color:var(--muted)}.welcome{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}.welcome-story{background:#172e27;color:#e6eee3;padding:50px 65px;display:flex;flex-direction:column;justify-content:space-between;min-height:760px;overflow:hidden}.welcome-story h1{font-size:46px;line-height:1.2;letter-spacing:-2px}.welcome-story>div>p:not(.eyebrow){max-width:420px;color:#b1c2ad;font-size:15px}.welcome-story .eyebrow{color:#bcd292}.welcome-story small{letter-spacing:3px;color:#79937e;font-size:9px}.welcome-cube img{width:170px;height:170px;transform:rotate(-12deg);margin-top:25px;filter:drop-shadow(0 15px 40px #95b47033)}.welcome-form{padding:80px;align-self:center;max-width:600px}.welcome-form h2{font-size:31px;line-height:1.4;letter-spacing:-1px}.welcome-form .eyebrow{color:#83956c}.welcome-form .field{margin-bottom:18px}.welcome-form small{display:block;line-height:1.7;margin-top:22px}#print-area{display:none}
+@media(min-width:1600px){.main{padding-inline:65px}.calculator-grid{grid-template-columns:minmax(0,1fr) 360px}.dashboard-grid{grid-template-columns:minmax(0,1fr) 300px}}
+@media(max-width:1150px){.sidebar{width:200px;padding-inline:18px}.layout{grid-template-columns:200px 1fr}.main{padding-inline:25px}.stats{grid-template-columns:1fr 1fr}.dashboard-grid{grid-template-columns:1fr}.tip-card{display:none}.calculator-grid{grid-template-columns:minmax(0,1fr) 280px;gap:16px}.form-panel{padding:20px}.page-header{align-items:flex-start}.welcome-form{padding:45px}.welcome-story{padding:40px}.welcome-story h1{font-size:39px}.client-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:850px){.layout{display:block}.sidebar{position:static;width:100%;padding:20px 23px}.sidebar-label,.sidebar-bottom{display:none}.sidebar nav{grid-template-columns:repeat(4,1fr);gap:6px;margin-top:20px}.nav-item{padding:11px 8px;justify-content:center;font-size:11px;gap:7px}.nav-item span{font-size:16px}.main{padding:0 23px 23px}.topbar{height:57px;font-size:10px}.page-header{margin-top:27px;flex-wrap:wrap;gap:16px}.header-actions{width:100%}.calculator-grid{grid-template-columns:1fr}.result-column{position:static}.result-total{font-size:40px}.welcome{grid-template-columns:1fr}.welcome-story{min-height:320px;padding:28px}.welcome-story h1{font-size:32px;margin-top:35px}.welcome-story .brand{font-size:20px}.welcome-story>div>p:not(.eyebrow){font-size:13px}.welcome-cube,.welcome-story>small{display:none}.welcome-story .eyebrow{display:none}.welcome-form{padding:35px 28px;max-width:none}.welcome-form h2{font-size:26px}}
+@media(max-width:500px){.main{padding-inline:16px}.sidebar{padding:20px 16px 13px}.nav-item{font-size:10px;padding-inline:5px;gap:4px}.brand{font-size:21px}.stats{gap:10px}.stat{padding:17px 13px}.stat strong{font-size:24px}.stat small{font-size:9px}.page-header h1{font-size:27px}.page-header .eyebrow{font-size:9px}.fields,.service-prices{grid-template-columns:1fr}.form-panel{padding:20px 17px}.client-grid{grid-template-columns:1fr}.filterbar{flex-wrap:wrap;padding:15px}.filterbar .search{flex-basis:100%}.filterbar select{flex:1}.header-actions .btn{padding:12px 15px;flex:1;font-size:11px}.footer{font-size:9px}td,th{padding-inline:15px}.panel-heading{padding-inline:18px}}
+@media print{@page{size:A4;margin:20mm}body{background:white;color:#203529;font-family:Arial,sans-serif}#app,#toast{display:none!important}#print-area{display:block}#print-area header{display:flex;gap:16px;align-items:center;padding-bottom:22px;border-bottom:2px solid #193d31}#print-area header img{width:48px;height:48px}#print-area header h1{font-size:24px;margin:0}#print-area header p{margin:7px 0 0;font-size:12px}#print-area header>b{margin-left:auto;font-size:12px}#print-area .print-meta{display:flex;justify-content:space-between;margin:35px 0}#print-area .print-meta p{font-size:12px;margin:5px 0}#print-area .print-meta h2{margin:8px 0;font-size:20px}#print-area table{white-space:normal;margin:25px 0}#print-area th,#print-area td{padding:16px 10px;font-size:12px}#print-area .print-total{text-align:right;padding:18px;background:#eff4e8;font-size:16px}#print-area .print-total b{margin-left:35px;font-size:24px}#print-area h3{margin-top:35px;font-size:14px}.print-notes{white-space:pre-wrap;font-size:12px}#print-area footer{border-top:1px solid #ddd;margin-top:55px;padding-top:15px;font-size:10px;color:#888}}
+.task-title{font-size:13px;margin:24px 0 14px}.task-editor{background:#f4f6ed;border:1px solid #e4e9d9;border-radius:6px;padding:15px;margin:8px 0 16px}.task-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.task-editor>.field{margin-bottom:14px}.task-extras{margin-top:25px}.service-edit{display:grid;gap:12px;padding:15px;background:#f6f7f1;border-radius:7px}.sidebar nav{gap:6px}@media(max-width:850px){.sidebar nav{grid-template-columns:repeat(5,1fr)}.nav-item{font-size:10px}}@media(max-width:500px){.task-fields{grid-template-columns:1fr}.nav-item span{display:none}.nav-item{font-size:9px;padding-inline:2px}}
+</style></head>
+<body><div id="app"><div class="loading">Preparando seu ateliê…</div></div><div id="toast" role="status" aria-live="polite"></div><div id="print-area"></div><script type="module">// Apenas URL e chave PUBLICÁVEL/anon. Nunca use service_role ou chave secreta.
+const cloudConfig = { url: '', key: '' };
+
+const statuses = ['Rascunho', 'Enviado', 'Aprovado', 'Em produção', 'Concluído', 'Recusado', 'Expirado'];
+const defaults = {
+  business: 'Meu ateliê', contact: '', currency: 'EUR', losses: 1.25,
+  machine: 0.60, rate: 35, pricing: 'markup', minimum: 10,
+  validity: 15, resinName: '', resinPerLiter: 0,
+  prep: [
+    {name:'Pré-suportado / pronto',cost:0}, {name:'Suportes simples',cost:3},
+    {name:'Suportes manuais / trabalhosos',cost:6.5}, {name:'Hollow + furos',cost:4.5},
+    {name:'Dividir / corrigir modelo',cost:10}, {name:'Modelagem simples / modificação 3D',cost:8}
+  ],
+  post: [{name:'Simples',cost:3},{name:'Médio / detalhado',cost:5},{name:'Grande / muitos suportes',cost:8},{name:'Personalizado',cost:10}]
+};
+const clone = v => structuredClone(v);
+const today = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+function newQuote(settings=defaults) {
+  return { id:crypto.randomUUID(), project:'', client:'', contact:'', date:today(), status:'Rascunho', quantity:1,
+    plates:[{label:'Lote 1',runs:1,hours:0,resinMode:'slicer',resinCost:0,volume:0,pricePerLiter:settings.resinPerLiter}],
+    prep:[],post:0,postTasks:[],extraTasks:[],postMode:'order',extras:0,shippingCost:0,shippingCharge:0,market:null,finalPrice:null,notes:'',
+    settings:clone(settings), validity:settings.validity, result:null, revision:0 };
+}
+function number(v,label,min=0,integer=false) {
+  if(v===null||v===undefined||v===''||!Number.isFinite(Number(v))) throw Error(`Informe ${label}.`);
+  const n=Number(v); if(n<min||(integer&&!Number.isInteger(n))) throw Error(`Confira ${label}.`); return n;
+}
+function calculate(q) {
+  const s=q.settings;
+  const quantity=number(q.quantity,'a quantidade de peças',1,true);
+  const factor=number(s.losses,'o fator de perdas',1);
+  const machineRate=number(s.machine,'o custo de máquina');
+  const rate=number(s.rate,'o percentual')/100;
+  if(!['markup','margin'].includes(s.pricing)) throw Error('Escolha como calcular o lucro.');
+  if(s.pricing==='margin'&&rate>=1) throw Error('A margem sobre venda precisa ser menor que 100%.');
+  if(!q.plates?.length) throw Error('Adicione pelo menos um lote.');
+  let resin=0,machine=0,hours=0;
+  for(const p of q.plates) {
+    const runs=number(p.runs,'o número de repetições do lote',1,true);
+    const time=number(p.hours,'o tempo do lote');
+    let raw;
+    if(p.resinMode==='volume') {
+      const volume=number(p.volume,'o volume de resina');
+      const price=number(p.pricePerLiter,'o preço da resina por litro');
+      if(volume>0&&price<=0) throw Error('Informe o preço por litro para calcular pela quantidade de resina.');
+      raw=volume*price/1000;
+    } else if(p.resinMode==='slicer') raw=number(p.resinCost,'o custo de resina no slicer');
+    else throw Error('Escolha a origem do custo de resina.');
+    resin+=raw*factor*runs; hours+=time*runs; machine+=time*runs*machineRate;
+  }
+  const taskCost=(v)=>number(v.cost,'o custo da tarefa')*number(v.count??1,'a quantidade da tarefa',1,true)*(v.basis==='piece'?quantity:1);
+  const prep=(q.prep??[]).reduce((sum,v)=>sum+taskCost(v),0);
+  const post=Array.isArray(q.postTasks)?q.postTasks.reduce((sum,v)=>sum+taskCost(v),0):number(q.post,'o custo do acabamento')*(q.postMode==='piece'?quantity:1);
+  const extras=number(q.extras,'os custos extras')+(q.extraTasks??[]).reduce((sum,v)=>sum+taskCost(v),0);
+  const shippingCost=number(q.shippingCost,'o custo de envio');
+  const shippingCharge=number(q.shippingCharge,'o frete cobrado');
+  const cost=resin+machine+prep+post+extras;
+  const suggested=Math.max(number(s.minimum,'o pedido mínimo'),s.pricing==='margin'?cost/(1-rate):cost*(1+rate));
+  const chosen=q.finalPrice===null||q.finalPrice===''||q.finalPrice===undefined?suggested:number(q.finalPrice,'o preço final');
+  const revenue=chosen+shippingCharge;
+  const profit=revenue-cost-shippingCost;
+  const market=q.market===null||q.market===''||q.market===undefined?null:number(q.market,'o preço de mercado')*quantity;
+  return {resin,machine,hours,prep,post,extras,cost,suggested,chosen,shippingCost,shippingCharge,total:revenue,
+    profit,margin:revenue>0?profit/revenue:null,unit:chosen/quantity,costUnit:cost/quantity,market,
+    difference:market===null?null:chosen-market,minimumApplied:suggested===Number(s.minimum)};
+}
+function validateQuote(q) {
+  if(!String(q.project??'').trim()) throw Error('Dê um nome ao projeto.');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(q.date??'')) throw Error('Informe a data do orçamento.');
+  if(!statuses.includes(q.status)) throw Error('Confira o status.');
+  number(q.validity,'a validade em dias',1,true);
+  for(const task of q.extraTasks??[])if(!String(task.name??'').trim())throw Error('Dê um nome às tarefas personalizadas.');
+  return calculate(q);
+}
+function quoteTotal(q) {return q.result??calculate(q);}
+const closed = q => ['Aprovado','Em produção','Concluído'].includes(q.status);
+function expiryDate(q) {
+  const d=new Date(`${q.date}T12:00:00`);d.setDate(d.getDate()+Number(q.validity??15));
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function effectiveStatus(q,asOf=today()) {
+  return q.status==='Enviado'&&expiryDate(q)<asOf?'Expirado':q.status;
+}
+
+class Store {
+  constructor() {this.mode='none';this.client=null;this.user=null;this.rows=new Map();}
+  get configured() {return Boolean(cloudConfig.url&&cloudConfig.key);}
+  async initialize() {
+    if(!this.configured)return;
+    const {createClient}=await import('https://esm.sh/@supabase/supabase-js@2.102.0');
+    this.client=createClient(cloudConfig.url,cloudConfig.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const {data,error}=await this.client.auth.getSession();if(error)throw error;
+    this.user=data.session?.user??null;
+    if(this.user)this.mode='cloud';
+  }
+  async login(email,password) {
+    const {data,error}=await this.client.auth.signInWithPassword({email,password});
+    if(error)throw Error('Não foi possível entrar. Confira seu e-mail e senha.');
+    this.user=data.user;this.mode='cloud';
+  }
+  async logout() {if(this.mode==='cloud'){const {error}=await this.client.auth.signOut();if(error)throw error;}this.mode='none';this.user=null;this.rows.clear();}
+  demo() {this.mode='demo';this.rows.clear();}
+  async load() {
+    if(this.mode==='demo')return JSON.parse(localStorage.getItem('resina-demo-v1')||'{"quotes":[],"settings":null}');
+    if(this.mode!=='cloud')throw Error('Entre para carregar seus dados.');
+    let rows=[];
+    for(let offset=0;;offset+=500){
+      const {data,error}=await this.client.from('resina_records').select('*').eq('owner_id',this.user.id).order('id').range(offset,offset+499);
+      if(error)throw Error('Não foi possível carregar o banco online. Tente atualizar.');
+      rows.push(...data);if(data.length<500)break;
+    }
+    this.rows=new Map(rows.map(r=>[r.id,r]));
+    return {settings:rows.find(r=>r.kind==='settings')?.payload??null,quotes:rows.filter(r=>r.kind==='quote').map(r=>({...r.payload,revision:r.revision}))};
+  }
+  async save(kind,payload,expectedRevision=0) {
+    if(this.mode==='demo') {
+      const db=await this.load();
+      if(kind==='settings')db.settings=payload;
+      else {const i=db.quotes.findIndex(q=>q.id===payload.id);const next={...payload,revision:expectedRevision+1};if(i<0)db.quotes.push(next);else db.quotes[i]=next;}
+      localStorage.setItem('resina-demo-v1',JSON.stringify(db));return expectedRevision+1;
+    }
+    if(this.mode!=='cloud')throw Error('Entre para salvar online.');
+    const id=kind==='settings'?'settings':payload.id;
+    const previous=this.rows.get(id);
+    const revision=kind==='settings'?(previous?.revision??0):expectedRevision;
+    let response;
+    if(previous||revision>0) response=await this.client.from('resina_records').update({payload,revision:revision+1}).eq('id',id).eq('owner_id',this.user.id).eq('revision',revision).select();
+    else response=await this.client.from('resina_records').insert({id,owner_id:this.user.id,kind,payload,revision:1}).select();
+    if(response.error)throw Error('Não foi possível salvar online. Seus campos continuam nesta tela.');
+    if(!response.data?.length)throw Error('Este registro mudou em outro aparelho. Atualize antes de continuar.');
+    this.rows.set(id,response.data[0]);return response.data[0].revision;
+  }
+}
+
+const store=new Store();
+let settings=clone(defaults),quotes=[],view='dashboard',draft=null,dirty=false,busy=false,filter='',search='',settingsDraft=null;
+const app=document.querySelector('#app');
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:settings.currency}).format(Number(v)||0);
+const percent=v=>v===null?'—':`${(v*100).toFixed(1).replace('.',',')}%`;
+const fmtDate=d=>new Date(`${d}T12:00:00`).toLocaleDateString('pt-PT');
+const icon=(name)=>({dashboard:'◫',quotes:'▤',clients:'◉',settings:'⚙',calculator:'＋'}[name]||'◇');
+const toast=(message)=>{document.querySelector('#toast').textContent=message;document.querySelector('#toast').classList.add('show');setTimeout(()=>document.querySelector('#toast').classList.remove('show'),5000);};
+function input(label,name,value,type='text',opts='') {return `<label class="field"><span>${label}</span><input name="${name}" type="${type}" value="${esc(value)}" ${opts}></label>`;}
+function select(label,name,value,options){return `<label class="field"><span>${label}</span><select name="${name}">${options.map(o=>`<option value="${esc(o.value??o)}" ${(o.value??o)===value?'selected':''}>${esc(o.label??o)}</option>`).join('')}</select></label>`;}
+function action(label,a,cls='btn secondary',id=''){return `<button type="button" class="${cls}" data-action="${a}" ${id?`data-id="${esc(id)}"`:''}>${label}</button>`;}
+function login(error='') {
+  app.innerHTML=`<main class="welcome"><div class="welcome-story"><a class="brand"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt="">Resina<span>studio</span></a><div><p class="eyebrow">SEU ATELIÊ. SEU CONTROLE.</p><h1>Da primeira camada<br>ao preço certo.</h1><p>Transforme resina, tempo e trabalho em orçamentos claros. Tenha seus projetos e resultados sempre à mão.</p><div class="welcome-cube"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt=""></div></div><small>IMPRESSÃO 3D EM RESINA</small></div><section class="welcome-form"><p class="eyebrow">BEM-VINDO AO SEU ESPAÇO</p><h2>Vamos organizar<br>o próximo projeto?</h2><p class="muted">Acesse seu ateliê para consultar e salvar seus orçamentos online.</p>${error?`<div class="notice error">${esc(error)}</div>`:''}${store.configured?`<form id="login-form">${input('E-mail','email','','email','required autocomplete="username"')}${input('Senha','password','','password','required autocomplete="current-password"')}<button class="btn primary wide" type="submit">Entrar no meu ateliê →</button></form>`:`<div class="notice">A conexão online ainda está sendo preparada. Você já pode experimentar a ferramenta.</div>`}${action('Experimentar demonstração','demo','btn secondary wide')}<small>A demonstração salva somente neste navegador. Ela não sincroniza com seus outros aparelhos.</small></section></main>`;
+}
+function shell(content,title,subtitle,buttons='') {
+  app.innerHTML=`<div class="layout"><aside class="sidebar"><a class="brand" href="#"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt="">Resina<span>studio</span></a><p class="sidebar-label">MEU ATELIÊ</p><nav>${[['calculator','Calculadora'],['dashboard','Visão geral'],['quotes','Orçamentos'],['clients','Clientes'],['settings','Configurações']].map(([id,label])=>`<button data-view="${id}" class="nav-item ${view===id?'active':''}"><span>${icon(id)}</span>${label}</button>`).join('')}</nav><div class="sidebar-bottom"><div class="profile"><span class="avatar">${esc(settings.business.slice(0,1).toUpperCase())}</span><div><b>${esc(settings.business)}</b><small>${store.mode==='demo'?'Demonstração local':'Conta conectada'}</small></div></div>${action('Sair','logout','text-btn')}</div></aside><main class="main"><div class="topbar"><span>Seu espaço de impressão 3D</span><button data-action="refresh" class="sync">${store.mode==='demo'?'◌ Modo demonstração':'● Dados online · Atualizar'}</button></div>${store.mode==='demo'?'<div class="demo-banner">Demonstração: os dados ficam somente neste navegador. O acesso online aguarda a configuração do GitHub e do banco.</div>':''}<header class="page-header"><div><p class="eyebrow">RESINA STUDIO</p><h1>${title}</h1><p>${subtitle}</p></div><div class="header-actions">${buttons}</div></header>${content}<footer class="footer">Feito para o ritmo do seu ateliê.<span>Resina Studio</span></footer></main></div>`;
+}
+function summaryStats(list=quotes) {
+  const sold=list.filter(closed),revenue=sold.reduce((a,q)=>a+quoteTotal(q).total,0),profit=sold.reduce((a,q)=>a+quoteTotal(q).profit,0);
+  return `<div class="stats"><article class="stat"><span>Pedidos aprovados</span><strong>${sold.length}</strong><small>Aprovados, em produção ou concluídos</small></article><article class="stat"><span>Receita estimada</span><strong>${money(revenue)}</strong><small>Preço combinado, incluindo frete</small></article><article class="stat"><span>Lucro estimado</span><strong class="${profit<0?'negative':''}">${money(profit)}</strong><small>Após produção e custo do envio</small></article><article class="stat"><span>Aguardando resposta</span><strong>${list.filter(q=>effectiveStatus(q)==='Enviado').length}</strong><small>Orçamentos enviados</small></article></div>`;
+}
+function badge(status){return `<span class="badge ${status==='Recusado'?'declined':closed({status})?'approved':''}">${esc(status)}</span>`;}
+function quoteTable(list) {
+  if(!list.length)return `<div class="empty"><span class="empty-symbol">◇</span><h3>${quotes.length?'Nenhum orçamento encontrado':'Seu próximo projeto começa aqui'}</h3><p>${quotes.length?'Experimente outro nome ou status.':'Crie um orçamento e veja os custos e o lucro antes de combinar o preço.'}</p>${action('＋ Criar orçamento','new','btn primary')}</div>`;
+  return `<div class="table-scroll"><table><thead><tr><th>PROJETO / CLIENTE</th><th>DATA</th><th>STATUS</th><th>TOTAL</th><th>LUCRO EST.</th><th></th></tr></thead><tbody>${list.map(q=>{const r=quoteTotal(q);return `<tr><td><b>${esc(q.project)}</b><small>${esc(q.client||'Cliente não informado')} · ${q.quantity} peça${q.quantity>1?'s':''}</small></td><td>${fmtDate(q.date)}</td><td>${badge(effectiveStatus(q))}<small>Validade: ${fmtDate(expiryDate(q))}</small></td><td><b>${money(r.total)}</b></td><td class="${r.profit<0?'negative':''}">${money(r.profit)}</td><td><button class="text-btn" data-action="edit" data-id="${q.id}" aria-label="Abrir ${esc(q.project)}">Abrir ↗</button></td></tr>`;}).join('')}</tbody></table></div>`;
+}
+function render() {
+  if(store.mode==='none')return login();
+  if(view==='calculator')return renderCalculator();
+  if(view==='settings')return renderSettings();
+  if(view==='clients') {
+    const clients=new Map();for(const q of quotes){if(q.client){const key=q.client.trim().toLowerCase();if(!clients.has(key))clients.set(key,[]);clients.get(key).push(q);}}
+    const cards=[...clients.values()].map(list=>`<article class="client-card"><span class="avatar light">${esc(list[0].client.slice(0,1))}</span><h3>${esc(list[0].client)}</h3><p class="muted">${esc(list.find(q=>q.contact)?.contact||'Sem contato informado')}</p><div class="client-meta"><span>${list.length} orçamento${list.length>1?'s':''}</span><b>${money(list.filter(closed).reduce((a,q)=>a+quoteTotal(q).total,0))}</b></div><button class="text-btn" data-action="client-history" data-id="${esc(list[0].client)}">Ver histórico →</button></article>`).join('');
+    return shell(`<div class="client-grid">${cards||'<div class="empty"><h3>Seus clientes aparecem aqui</h3><p>Informe o cliente ao salvar um orçamento para reunir o histórico dele.</p></div>'}</div>`,'Clientes','Cada relacionamento, com seu histórico.',action('＋ Novo orçamento','new','btn primary'));
+  }
+  const list=[...quotes].sort((a,b)=>b.date.localeCompare(a.date));
+  if(view==='quotes')return shell(`<section class="panel"><div class="filterbar"><label class="search"><span>⌕</span><input id="search" placeholder="Buscar projeto ou cliente" value="${esc(search)}" aria-label="Buscar projeto ou cliente"></label><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option>${statuses.map(s=>`<option ${filter===s?'selected':''}>${s}</option>`).join('')}</select><span id="count">${quotes.length} registros</span></div><div id="quote-list">${quoteTable(filtered(list))}</div></section>`,'Orçamentos','Tudo salvo, fácil de encontrar.',`${action('Exportar backup','backup')}${action('＋ Novo orçamento','new','btn primary')}`);
+  shell(`${summaryStats()}<div class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><h2>Últimos orçamentos</h2><p>Do primeiro cálculo ao pedido concluído.</p></div><button class="text-btn" data-view="quotes">Ver todos →</button></div>${quoteTable(list.slice(0,5))}</section><aside class="tip-card"><p class="eyebrow">PRECIFICAR COM CLAREZA</p><h2>Cada lote tem<br>seu próprio custo.</h2><p>Várias peças na mesma plate compartilham o tempo de máquina. Lotes diferentes podem ter tempos e consumos diferentes.</p><div class="tip-rule">RESINA + TEMPO + TRABALHO</div>${action('Calcular um projeto →','new','btn lime')}</aside></div>`,'Seu ateliê, em perspectiva.','Uma visão clara dos projetos e dos resultados.',action('＋ Novo orçamento','new','btn primary'));
+}
+function filtered(list){return list.filter(q=>(!filter||effectiveStatus(q)===filter)&&`${q.project} ${q.client}`.toLowerCase().includes(search.toLowerCase()));}
+
+function taskEditor(t,group,index,custom=false) {
+  return `<div class="task-editor">${custom?input('Descrição da tarefa',`${group}.${index}.name`,t.name,'text','required placeholder="Ex.: Montagem, ímãs, pintura…"'):''}<div class="task-fields">${input('Custo (€)',`${group}.${index}.cost`,t.cost,'number','min="0" step="0.01" required')}${input('Quantidade da tarefa',`${group}.${index}.count`,t.count??1,'number','min="1" step="1" required')}${select('Aplicar custo',`${group}.${index}.basis`,t.basis??'order',[{value:'order',label:'Por pedido'},{value:'piece',label:'Por peça'}])}</div>${custom?action('Remover tarefa','remove-task','text-btn',String(index)):''}</div>`;
+}
+function serviceGroup(group,selected,catalog) {
+  return `<div class="services">${catalog.map((p,i)=>{const index=selected.findIndex(t=>t.name===p.name);return `<div><label class="service"><input type="checkbox" name="task-choice" data-group="${group}" value="${i}" ${index>=0?'checked':''}><span>${esc(p.name)}</span><b>${money(p.cost)}</b></label>${index>=0?taskEditor(selected[index],group,index):''}</div>`;}).join('')}${selected.filter(t=>!catalog.some(p=>p.name===t.name)).map(t=>`<div><b>${esc(t.name)}</b>${taskEditor(t,group,selected.indexOf(t))}</div>`).join('')}</div>`;
+}
+
+function renderCalculator() {
+  const q=draft;
+  shell(`<form id="quote-form"><div class="calculator-grid"><div class="form-stack"><section class="panel form-panel"><div class="section-title"><span>01</span><div><h2>O projeto</h2><p>Quem está pedindo e o que vai sair da impressora.</p></div></div><div class="fields">${input('Nome do projeto','project',q.project,'text','required placeholder="Ex.: Miniatura personalizada"')}${input('Cliente','client',q.client,'text','list="client-names" placeholder="Nome do cliente"')}<datalist id="client-names">${[...new Set(quotes.map(x=>x.client).filter(Boolean))].map(x=>`<option value="${esc(x)}"></option>`).join('')}</datalist>${input('Contato do cliente','contact',q.contact,'text','placeholder="E-mail ou telefone"')}${input('Data','date',q.date,'date','required')}${input('Quantidade total de peças','quantity',q.quantity,'number','min="1" step="1" required')}${select('Status','status',effectiveStatus(q),statuses)}</div></section><section class="panel form-panel"><div class="section-title"><span>02</span><div><h2>Impressão por lote</h2><p>Informe o custo e o tempo de uma plate. As repetições multiplicam esse lote.</p></div></div>${q.plates.map((p,i)=>`<div class="plate"><div class="plate-heading"><b>${esc(p.label)}</b>${q.plates.length>1?action('Remover','remove-plate','text-btn',String(i)):''}</div><div class="fields">${input('Repetições deste lote',`plates.${i}.runs`,p.runs,'number','min="1" step="1" required')}${input('Tempo por plate (horas)',`plates.${i}.hours`,p.hours,'number','min="0" step="0.01" required')}${select('Cálculo da resina',`plates.${i}.resinMode`,p.resinMode,[{value:'slicer',label:'Custo informado pelo slicer'},{value:'volume',label:'Volume em ml × preço por litro'}])}${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):`${input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="0.1" required')}${input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number','min="0" step="0.01" required')}`}</div></div>`).join('')}${action('＋ Adicionar lote diferente','add-plate','btn secondary')}<div class="inline-info">O fator de ${q.settings.losses.toFixed(2)}× acrescenta perdas à resina. Se o slicer já inclui suportes, evite contar os suportes novamente.</div></section><section class="panel form-panel"><div class="section-title"><span>03</span><div><h2>Preparação e acabamento</h2><p>Combine os serviços que este projeto realmente exige.</p></div></div><h3 class="task-title">Preparação do STL</h3>${serviceGroup('prep',q.prep,q.settings.prep)}<h3 class="task-title">Pós-processamento</h3>${serviceGroup('postTasks',q.postTasks??[],q.settings.post)}<h3 class="task-title">Tarefas específicas deste projeto</h3>${(q.extraTasks??[]).map((t,i)=>taskEditor(t,'extraTasks',i,true)).join('')}${action('＋ Adicionar tarefa personalizada','add-task','btn secondary')}<div class="fields task-extras">${input('Outros custos / embalagem (€)','extras',q.extras,'number','min="0" step="0.01" required')}</div></section><section class="panel form-panel"><div class="section-title"><span>04</span><div><h2>Preço e entrega</h2><p>Compare a sugestão com o preço que pretende cobrar.</p></div></div><div class="fields">${select('Como definir o lucro','settings.pricing',q.settings.pricing,[{value:'markup',label:'Acréscimo sobre custo'},{value:'margin',label:'Margem sobre venda'}])}${input('Percentual desejado (%)','settings.rate',q.settings.rate,'number','min="0" step="0.1" required')}${input('Preço final sem frete (€)','finalPrice',q.finalPrice,'number','min="0" step="0.01" placeholder="Usar preço sugerido"')}${input('Referência de mercado por peça (€)','market',q.market,'number','min="0" step="0.01" placeholder="Opcional"')}${input('Frete cobrado do cliente (€)','shippingCharge',q.shippingCharge,'number','min="0" step="0.01" required')}${input('Custo real do envio (€)','shippingCost',q.shippingCost,'number','min="0" step="0.01" required')}${input('Validade (dias)','validity',q.validity,'number','min="1" step="1" required')}</div><label class="field"><span>Observações para o cliente</span><textarea name="notes" rows="3" placeholder="Prazo, acabamento, condições de entrega…">${esc(q.notes)}</textarea></label></section></div><aside class="result-column"><div id="result"></div><p class="snapshot-note">Este orçamento guarda os custos e taxas usados agora. Alterações nas configurações valem para novos orçamentos.</p></aside></div></form>`,q.revision?'Editar orçamento':'Um novo projeto.','Transforme o trabalho em um preço que faça sentido.',`${action('Voltar','back')}${action('Salvar rascunho','save-draft')}${action('Finalizar orçamento','save','btn primary')}`);
+  updateResult();
+}
+function updateResult() {
+  const element=document.querySelector('#result');if(!element)return;
+  try {
+    const r=calculate(draft);
+    element.innerHTML=`<div class="result-card"><p class="eyebrow">SEU ORÇAMENTO, AO VIVO</p><span class="result-label">Total para o cliente</span><strong class="result-total">${money(r.total)}</strong><p>${money(r.unit)} / peça <span>+ ${money(r.shippingCharge)} de frete</span></p><div class="result-profit"><span>Lucro estimado</span><b class="${r.profit<0?'negative':''}">${money(r.profit)}</b><small>Margem efetiva: ${percent(r.margin)}</small></div><div class="breakdown">${[['Resina + perdas',r.resin],['Máquina',r.machine],['Preparação STL',r.prep],['Pós-processamento',r.post],['Extras / embalagem',r.extras]].map(([l,v])=>`<div><span>${l}</span><b>${money(v)}</b></div>`).join('')}<div class="subtotal"><span>Custo de produção</span><b>${money(r.cost)}</b></div><div><span>Preço sugerido sem frete</span><b>${money(r.suggested)}</b></div><div><span>Custo do envio</span><b>${money(r.shippingCost)}</b></div></div>${r.profit<0?'<div class="notice error">Este preço gera prejuízo. Reveja o valor antes de enviar.</div>':''}${r.minimumApplied?'<div class="result-hint">Pedido mínimo aplicado.</div>':''}${r.market!==null?`<div class="result-hint">${r.difference>=0?'Acima':'Abaixo'} da referência de mercado: ${money(Math.abs(r.difference))}</div>`:''}<button class="btn lime wide" type="submit">${busy?'Salvando…':'Finalizar orçamento →'}</button>${action('Imprimir / salvar PDF','print','btn ghost wide')}${draft.revision?action('Duplicar orçamento','duplicate','text-btn wide',draft.id):''}</div><div class="formula-note"><b>${draft.settings.pricing==='markup'?'Acréscimo sobre custo':'Margem sobre venda'}</b><p>${draft.settings.pricing==='markup'?'Custo × (1 + percentual). Um acréscimo de 35% corresponde a uma margem de 25,9% antes do frete.':'Custo ÷ (1 − percentual). A margem é a parcela do preço de venda que sobra após os custos.'}</p></div>`;
+  }catch(error){element.innerHTML=`<div class="result-card"><h2>Confira os valores</h2><p>${esc(error.message)}</p></div>`;}
+}
+function setPath(target,path,value) {const keys=path.split('.');let parent=target;for(const k of keys.slice(0,-1))parent=parent[k];parent[keys.at(-1)]=value;}
+function absorbQuoteField(target) {
+  if(target.name==='task-choice'){
+    const group=target.dataset.group,index=Number(target.value),catalog=group==='prep'?draft.settings.prep:draft.settings.post;
+    draft[group]??=[];
+    if(target.checked&&!draft[group].some(x=>x.name===catalog[index].name))draft[group].push({...clone(catalog[index]),count:1,basis:'order'});
+    if(!target.checked)draft[group]=draft[group].filter(x=>x.name!==catalog[index].name);
+  }
+  else if(target.name){const value=target.type==='number'?(target.value===''?null:Number(target.value)):target.value;setPath(draft,target.name,value);}
+  dirty=true;updateResult();
+}
+function renderSettings() {
+  settingsDraft??=clone(settings);const edit=settingsDraft;
+  shell(`<form id="settings-form"><section class="panel form-panel"><div class="section-title"><span>01</span><div><h2>Identidade do ateliê</h2><p>Esses dados aparecem no orçamento do cliente.</p></div></div><div class="fields">${input('Nome do ateliê','business',edit.business,'text','required')}${input('Seu contato','contact',edit.contact)}${input('Validade padrão (dias)','validity',edit.validity,'number','min="1" step="1" required')}</div></section><section class="panel form-panel"><div class="section-title"><span>02</span><div><h2>Custos e preço padrão</h2><p>Valores de partida para os próximos projetos.</p></div></div><div class="fields">${input('Fator de perdas de resina','losses',edit.losses,'number','min="1" step="0.01" required')}${input('Custo da máquina (€/hora)','machine',edit.machine,'number','min="0" step="0.01" required')}${input('Pedido mínimo (€)','minimum',edit.minimum,'number','min="0" step="0.01" required')}${select('Cálculo padrão','pricing',edit.pricing,[{value:'markup',label:'Acréscimo sobre custo'},{value:'margin',label:'Margem sobre venda'}])}${input('Percentual padrão (%)','rate',edit.rate,'number','min="0" step="0.1" required')}${input('Nome da resina habitual','resinName',edit.resinName)}${input('Preço da resina habitual (€/litro)','resinPerLiter',edit.resinPerLiter,'number','min="0" step="0.01" required')}</div><div class="inline-info">O custo da máquina pode incluir eletricidade, desgaste do filme, LCD e manutenção. Não inclua esses custos novamente nos extras.</div></section><section class="panel form-panel"><h2>Tabela de serviços</h2><p class="muted">Preparação de arquivo e pós-processamento.</p>${['prep','post'].map(kind=>`<h3 class="task-title">${kind==='prep'?'Preparação STL':'Pós-processamento'}</h3><div class="service-prices">${edit[kind].map((p,i)=>`<div class="service-edit">${input('Nome da tarefa',`${kind}.${i}.name`,p.name,'text','required')}${input('Custo padrão (€)',`${kind}.${i}.cost`,p.cost,'number','min="0" step="0.01" required')}${action('Remover','remove-service','text-btn',`${kind}:${i}`)}</div>`).join('')}</div>${action('＋ Criar item','add-service','btn secondary',kind)}`).join('')}</section><div class="form-end"><button type="submit" class="btn primary">Salvar configurações</button></div></form>`,'Do seu jeito.','Defina seus custos uma vez e reaproveite nos próximos orçamentos.',action('Exportar backup','backup'));
+}
+async function saveQuote(finalize=true) {
+  if(busy)return;
+  try {
+    if(finalize&&draft.status==='Rascunho')draft.status='Enviado';
+    const result=validateQuote(draft);busy=true;updateResult();
+    const payload={...clone(draft),project:draft.project.trim(),client:draft.client.trim(),result,updatedAt:new Date().toISOString()};
+    const revision=await store.save('quote',payload,draft.revision);
+    payload.revision=revision;const i=quotes.findIndex(x=>x.id===payload.id);if(i<0)quotes.push(payload);else quotes[i]=payload;
+    draft=payload;dirty=false;view='quotes';render();toast(store.mode==='cloud'?'Orçamento salvo online.':'Orçamento salvo nesta demonstração local.');
+  }catch(error){toast(error.message);}finally{busy=false;}
+}
+function download(name,data,type='application/json'){const url=URL.createObjectURL(new Blob([data],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function printQuote() {
+  try {
+    const q=draft,r=validateQuote(q);
+    const validity=Number(q.validity);if(!Number.isInteger(validity)||validity<1)throw Error('Confira a validade do orçamento.');
+    const end=new Date(`${q.date}T12:00:00`);end.setDate(end.getDate()+validity);
+    document.querySelector('#print-area').innerHTML=`<header><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt=""><div><h1>${esc(q.settings.business)}</h1><p>${esc(q.settings.contact)}</p></div><b>ORÇAMENTO</b></header><div class="print-meta"><div><p>Preparado para</p><h2>${esc(q.client||'Cliente')}</h2><p>${esc(q.contact)}</p></div><div><p>Emissão: ${fmtDate(q.date)}</p><p>Válido até: ${end.toLocaleDateString('pt-PT')}</p></div></div><h2>${esc(q.project)}</h2><table><thead><tr><th>Descrição</th><th>Quantidade</th><th>Preço por peça</th><th>Total</th></tr></thead><tbody><tr><td>Impressão 3D em resina</td><td>${q.quantity}</td><td>${money(r.unit)}</td><td>${money(r.chosen)}</td></tr><tr><td colspan="3">Frete / entrega</td><td>${money(r.shippingCharge)}</td></tr></tbody></table><div class="print-total">Total <b>${money(r.total)}</b></div>${q.notes?`<h3>Observações</h3><p class="print-notes">${esc(q.notes)}</p>`:''}<footer>Valores em euros. Orçamento comercial; não substitui uma fatura.</footer>`;
+    window.print();
+  }catch(error){toast(error.message);}
+}
+async function refresh() {
+  if(dirty&&!confirm('Você tem alterações não salvas. Descartar e atualizar os dados?'))return;
+  try {const db=await store.load();settings=db.settings?{...clone(defaults),...db.settings}:clone(defaults);quotes=db.quotes;dirty=false;view='calculator';draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];render();}catch(error){toast(error.message);}
+}
+function leave(){return !dirty||confirm('Há alterações não salvas. Descartar essas alterações?');}
+setInterval(()=>{if(store.mode!=='none'&&['dashboard','quotes','clients'].includes(view))render();},60000);
+document.addEventListener('click',async event=>{
+  const nav=event.target.closest('[data-view]');if(nav){if(leave()){view=nav.dataset.view;dirty=false;settingsDraft=null;if(view==='calculator'){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];}render();}return;}
+  const button=event.target.closest('[data-action]');if(!button)return;
+  const {action:a,id}=button.dataset;
+  if(a==='demo'){store.demo();await refresh();return;}
+  if(a==='new'){if(leave()){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];view='calculator';dirty=false;render();}return;}
+  if(a==='edit'){if(leave()){draft=clone(quotes.find(q=>q.id===id));view='calculator';dirty=false;render();}return;}
+  if(a==='back'){if(leave()){view='quotes';dirty=false;render();}return;}
+  if(a==='save'){await saveQuote();return;}
+  if(a==='save-draft'){await saveQuote(false);return;}
+  if(a==='add-task'){draft.extraTasks??=[];draft.extraTasks.push({name:'',cost:0,count:1,basis:'order'});dirty=true;render();return;}
+  if(a==='remove-task'){draft.extraTasks.splice(Number(id),1);dirty=true;render();return;}
+  if(a==='add-service'){settingsDraft[id].push({name:'',cost:0});dirty=true;renderSettings();return;}
+  if(a==='remove-service'){const [group,index]=id.split(':');settingsDraft[group].splice(Number(index),1);dirty=true;renderSettings();return;}
+  if(a==='add-plate'){draft.plates.push({label:`Lote ${draft.plates.length+1}`,runs:1,hours:0,resinMode:'slicer',resinCost:0,volume:0,pricePerLiter:settings.resinPerLiter});dirty=true;render();return;}
+  if(a==='remove-plate'){draft.plates.splice(Number(id),1);dirty=true;render();return;}
+  if(a==='duplicate'){if(!leave())return;draft=clone(draft);draft.id=crypto.randomUUID();draft.project+=' (cópia)';draft.date=today();draft.status='Rascunho';draft.revision=0;draft.result=null;dirty=true;render();return;}
+  if(a==='print'){printQuote();return;}
+  if(a==='backup'){download(`resina-studio-backup-${today()}.json`,JSON.stringify({version:1,exportedAt:new Date().toISOString(),settings,quotes},null,2));toast('Backup exportado. Guarde o arquivo em um lugar seguro.');return;}
+  if(a==='refresh'){await refresh();return;}
+  if(a==='client-history'){search=id;filter='';view='quotes';render();return;}
+  if(a==='logout'){if(leave()){try{await store.logout();dirty=false;quotes=[];settings=clone(defaults);login();}catch(e){toast('Não foi possível sair. Tente novamente.');}}}
+});
+document.addEventListener('input',event=>{
+  if(event.target.id==='search'){search=event.target.value;document.querySelector('#quote-list').innerHTML=quoteTable(filtered([...quotes].sort((a,b)=>b.date.localeCompare(a.date))));return;}
+  if(event.target.closest('#quote-form')){absorbQuoteField(event.target);}
+  if(event.target.closest('#settings-form')){const t=event.target;const numeric=t.type==='number';if(t.name)setPath(settingsDraft,t.name,numeric?(t.value===''?null:Number(t.value)):t.value);dirty=true;}
+});
+document.addEventListener('change',event=>{
+  if(event.target.id==='status-filter'){filter=event.target.value;document.querySelector('#quote-list').innerHTML=quoteTable(filtered([...quotes].sort((a,b)=>b.date.localeCompare(a.date))));return;}
+  if(event.target.closest('#quote-form')){absorbQuoteField(event.target);if(event.target.name.endsWith('.resinMode')||event.target.name==='task-choice')render();}
+});
+document.addEventListener('submit',async event=>{
+  event.preventDefault();
+  if(event.target.id==='quote-form'){await saveQuote();return;}
+  if(event.target.id==='login-form'){
+    const data=new FormData(event.target);const button=event.target.querySelector('button');button.disabled=true;button.textContent='Entrando…';
+    try{await store.login(data.get('email'),data.get('password'));await refresh();}catch(error){login(error.message);}return;
+  }
+  if(event.target.id==='settings-form'){
+    if(busy)return;busy=true;
+    try {
+      const next=clone(settingsDraft);for(const [key,value] of new FormData(event.target)){const numeric=['validity','losses','machine','minimum','rate','resinPerLiter'].includes(key)||key.endsWith('.cost');setPath(next,key,numeric?Number(value):value);}
+      if(!next.business.trim())throw Error('Informe o nome do ateliê.');
+      for(const group of ['prep','post']){const seen=new Set();for(const item of next[group]){item.name=item.name.trim();if(!item.name)throw Error('Dê um nome a cada tarefa.');if(seen.has(item.name.toLowerCase()))throw Error('Use nomes diferentes para as tarefas da mesma tabela.');seen.add(item.name.toLowerCase());if(!Number.isFinite(item.cost)||item.cost<0)throw Error('Confira o custo da tarefa.');}}
+
+      const test=newQuote(next);calculate(test);if(!Number.isInteger(next.validity)||next.validity<1)throw Error('Confira a validade padrão.');
+      await store.save('settings',next);settings=next;settingsDraft=null;dirty=false;render();toast(store.mode==='cloud'?'Configurações salvas online.':'Configurações salvas na demonstração.');
+    }catch(error){toast(error.message);}finally{busy=false;}
+  }
+});
+window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
+try {await store.initialize();if(store.user)await refresh();else login();}catch(error){login('Não foi possível conectar. Confira a conexão e tente novamente.');}
+
+</script></body></html>
