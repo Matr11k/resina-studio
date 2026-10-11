@@ -16,6 +16,7 @@ body{font-size:12px}.layout{grid-template-columns:182px 1fr}.sidebar{width:182px
 @media(max-width:850px){.sidebar{position:static;width:100%;padding:13px 18px}.sidebar .brand{font-size:20px}.sidebar nav{margin-top:12px;gap:5px}.nav-item{font-size:10px;padding:9px 6px}.main{padding:0 17px 14px}.topbar{height:36px}.page-header{margin:17px 0 14px}.page-header h1{font-size:22px}.header-actions{width:auto}.calculator-grid{grid-template-columns:minmax(0,1fr) 245px;gap:12px}.form-stack{gap:12px}.task-columns{grid-template-columns:1fr;gap:13px}.result-card{padding:16px}.result-total{font-size:29px}.fields{gap:10px}.demo-banner{font-size:10px;margin-top:9px;padding:8px 10px}#settings-form{grid-template-columns:1fr}.section-title p{font-size:9px}}
 @media(max-width:650px){.calculator-grid{grid-template-columns:1fr}.result-column{position:static}.task-columns{grid-template-columns:1fr 1fr}.task-fields{grid-template-columns:.65fr .65fr 1.2fr}.header-actions{width:100%}.header-actions .btn{flex:1;font-size:10px}.price-fields{grid-template-columns:1fr 1fr}.service-prices{grid-template-columns:1fr 1fr}.result-card .breakdown{display:grid;grid-template-columns:1fr 1fr;gap:0 15px}.result-card .breakdown .subtotal{grid-column:1/-1}.snapshot-note{display:none}.brand img{width:25px;height:25px}.nav-item span{display:none}.form-panel{padding:14px}.field>span{font-size:10px}}
 @media(max-width:420px){.main{padding-inline:12px}.sidebar{padding-inline:12px}.nav-item{font-size:9px}.task-columns{grid-template-columns:1fr}.service-prices{grid-template-columns:1fr}.custom-task-controls{gap:10px}.custom-task-controls>.field{width:150px}.custom-task-controls .btn{font-size:10px;padding:9px 8px}.plate-footer span{font-size:8px}.header-actions .btn{font-size:10px;padding-inline:10px}}
+.slicer-launch{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px;border-top:1px solid #e2e7ec;padding-top:10px}.slicer-launch small{font-size:11px;color:#657183;line-height:1.4}.slicer-dialog{width:96vw;max-width:none;height:94vh;max-height:none;border:0;border-radius:12px;padding:0;overflow:hidden;background:#f3f5f7}.slicer-dialog[open]{display:flex;flex-direction:column}.slicer-dialog::backdrop{background:#0a1526ba}.slicer-dialog header,.slicer-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#fff;flex-shrink:0}.slicer-dialog header small{display:block;color:#687583;margin-top:3px}.slicer-dialog iframe{flex:1;width:100%;border:0;min-height:0}.slicer-dialog footer{font-size:12px;border-top:1px solid #dfe4e9}.slicer-dialog footer span{max-width:75%;line-height:1.5}@media(max-width:650px){.slicer-dialog{width:100vw;height:100dvh;border-radius:0}.slicer-dialog header,.slicer-dialog footer{padding:8px;flex-wrap:wrap}.slicer-dialog footer span{max-width:100%}.slicer-dialog .btn{font-size:11px}}
 </style></head>
 <body><div id="app"><div class="loading">Preparando seu ateliê…</div></div><div id="toast" role="status" aria-live="polite"></div><div id="print-area"></div><script type="module">// Apenas URL e chave PUBLICÁVEL/anon. Nunca use service_role ou chave secreta.
 const cloudConfig = { url: 'https://bitpvroagwyblnnihqut.supabase.co', key: 'sb_publishable_TyMLTIQmfJqmMt8gkZZMLw_kDWa_5RA' };
@@ -102,6 +103,31 @@ function effectiveStatus(q,asOf=today()) {
   return q.status==='Enviado'&&expiryDate(q)<asOf?'Expirado':q.status;
 }
 
+// Time is a configurable estimate, independent from the GPU volume calculation.
+function estimateSlaHours(layers, p) {
+  if (!Number.isInteger(layers) || layers < 1) throw Error('Fatie o modelo antes de calcular o tempo.');
+  for (const key of ['normalExposure','bottomExposure','liftHeight','liftSpeed','retractSpeed','restSeconds']) {
+    if (!Number.isFinite(p[key]) || p[key] < 0) throw Error('Confira os parâmetros de tempo.');
+  }
+  if (!Number.isInteger(p.bottomLayers) || p.bottomLayers < 0 || p.liftSpeed <= 0 || p.retractSpeed <= 0) throw Error('Confira as camadas base e as velocidades.');
+  const bottom = Math.min(layers, p.bottomLayers);
+  const motion = p.liftHeight / p.liftSpeed + p.liftHeight / p.retractSpeed + p.restSeconds;
+  return (bottom * p.bottomExposure + (layers - bottom) * p.normalExposure + layers * motion) / 3600;
+}
+
+function validateSlicerImport(data) {
+  if (!data || data.version !== 1 || data.engine !== 'SliceLab' || data.printer !== 'saturn-3-ultra') throw Error('Use o perfil Elegoo Saturn 3 Ultra.');
+  if (!Number.isFinite(data.volumeMl) || data.volumeMl <= 0 || data.volumeMl > 100000) throw Error('O slicer não retornou um volume válido.');
+  if (!Number.isInteger(data.layerCount) || data.layerCount < 1 || data.layerCount > 100000) throw Error('Quantidade de camadas inválida.');
+  if (!Number.isFinite(data.layerHeight) || data.layerHeight <= 0 || data.layerHeight > 1) throw Error('Altura de camada inválida.');
+  const hours = estimateSlaHours(data.layerCount, data.timing);
+  if (hours > 10000) throw Error('Confira o tempo estimado.');
+  return {version:1, engine:'SliceLab', printer:'saturn-3-ultra', volumeMl:data.volumeMl, hours,
+    layerCount:data.layerCount, layerHeight:data.layerHeight, timing:{...data.timing},
+    modelNames:(Array.isArray(data.modelNames)?data.modelNames:[]).slice(0,500).map(s=>String(s).slice(0,200)),
+    slicedAt:typeof data.slicedAt==='string'?data.slicedAt.slice(0,40):'', importedAt:new Date().toISOString()};
+}
+
 class Store {
   constructor() {this.mode='none';this.client=null;this.user=null;this.rows=new Map();}
   get configured() {return Boolean(cloudConfig.url&&cloudConfig.key);}
@@ -155,6 +181,7 @@ class Store {
 const store=new Store();
 let settings=clone(defaults),quotes=[],view='dashboard',draft=null,dirty=false,busy=false,filter='',search='',settingsDraft=null;
 const app=document.querySelector('#app');
+let slicerSession=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:settings.currency}).format(Number(v)||0);
 const percent=v=>v===null?'—':`${(v*100).toFixed(1).replace('.',',')}%`;
@@ -219,10 +246,10 @@ function renderCalculator() {
     <section class="panel form-panel plates-panel">${title('2','Impressão','Custo e tempo de uma plate, multiplicados pelas repetições.')}
       ${q.plates.map((p,i)=>`<div class="plate"><div class="plate-heading"><b>${esc(p.label)}</b>${q.plates.length>1?action('Remover','remove-plate','text-btn',String(i)):''}</div><div class="fields">
         ${input('Repetições deste lote',`plates.${i}.runs`,p.runs,'number','min="1" step="1" required')}
-        ${input('Tempo por plate (horas)',`plates.${i}.hours`,p.hours,'number','min="0" step="0.01" required')}
+        ${input('Tempo por plate (horas)',`plates.${i}.hours`,p.hours,'number','min="0" step="any" required')}
         ${select('Cálculo da resina',`plates.${i}.resinMode`,p.resinMode,[{value:'slicer',label:'Custo do slicer'},{value:'volume',label:'Volume em ml × preço / litro'}])}
-        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="0.1" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number','min="0" step="0.01" required')}
-      </div></div>`).join('')}
+        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="any" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number','min="0" step="0.01" required')}
+      </div><div class="slicer-launch">${action('◇ Preparar STL no slicer','open-slicer','btn secondary',String(i))}<small>${p.slicer?`${p.slicer.layerCount} camadas · ${esc(p.slicer.layerHeight)} mm · Saturn 3 Ultra${p.slicer.manualOverride?' · Valores ajustados manualmente':''}`:'Saturn 3 Ultra · Orientação, hollow e suportes'}</small>${p.slicer?'<small>Modelos 3D ficam neste navegador. O orçamento salva o consumo, o tempo e os parâmetros.</small>':''}</div></div>`).join('')}
       <div class="plate-footer">${action('＋ Adicionar lote','add-plate','btn secondary')}<span>${money(q.settings.machine)}/h · perdas ${q.settings.losses.toFixed(2)}×</span></div>
     </section>
     <section class="panel form-panel tasks-panel">${title('3','Tarefas e custos adicionais','Adicione serviços e ajuste o custo por pedido ou por peça.')}
@@ -252,7 +279,23 @@ function updateResult() {
   }catch(error){element.innerHTML=`<div class="result-card"><h2>Confira os valores</h2><p>${esc(error.message)}</p></div>`;}
 }
 function setPath(target,path,value) {const keys=path.split('.');let parent=target;for(const k of keys.slice(0,-1))parent=parent[k];parent[keys.at(-1)]=value;}
+function openSlicer(index) {
+  if(!draft?.plates[index])return;
+  const dialog=document.createElement('dialog');dialog.className='slicer-dialog';
+  const token=crypto.randomUUID();
+  dialog.innerHTML=`<header><div><b>Preparar ${esc(draft.plates[index].label)}</b><small>Slicer experimental · Estimativas para orçamento</small></div><button type="button" class="btn secondary" data-action="close-slicer">Voltar à calculadora ×</button></header><iframe title="Slicer de resina Nacent" src="./slicer/#nacent=${token}" allow="fullscreen"></iframe><footer><span id="slicer-preview">Carregue o STL, prepare a plate e clique em Fatiar. Depois use “Usar no orçamento”.</span><button type="button" class="btn primary" data-action="apply-slicer" disabled>Aplicar ao lote</button></footer>`;
+  document.body.append(dialog);slicerSession={dialog,index,quoteId:draft.id,token,result:null};
+  dialog.addEventListener('close',()=>{dialog.remove();slicerSession=null;});dialog.showModal();
+}
+window.addEventListener('message',event=>{
+  const s=slicerSession;if(!s||event.origin!==location.origin||event.source!==s.dialog.querySelector('iframe').contentWindow||event.data?.token!==s.token)return;
+  if(event.data.type==='nacent-slicer-invalid'){s.result=null;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=true;s.dialog.querySelector('#slicer-preview').textContent='A preparação ou os parâmetros mudaram. Fatie novamente quando necessário e clique em Usar no orçamento.';return;}
+  if(event.data.type!=='nacent-slicer-result')return;
+  try {s.result=validateSlicerImport(event.data.payload);s.dialog.querySelector('#slicer-preview').textContent=`${s.result.volumeMl.toFixed(3)} ml (inclui suportes) · ${s.result.hours.toFixed(2)} h estimadas · ${s.result.layerCount} camadas. O fator de perdas do orçamento continua aplicado.`;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=false;}
+  catch(error){s.result=null;s.dialog.querySelector('#slicer-preview').textContent=error.message;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=true;}
+});
 function absorbQuoteField(target) {
+  const slicedField=target.name.match(/^plates\.(\d+)\.(volume|hours|resinMode)$/);if(slicedField&&draft.plates[Number(slicedField[1])].slicer)draft.plates[Number(slicedField[1])].slicer.manualOverride=true;
   if(target.name==='task-choice'){
     const group=target.dataset.group,index=Number(target.value),catalog=group==='prep'?draft.settings.prep:draft.settings.post;
     draft[group]??=[];
@@ -296,6 +339,12 @@ setInterval(()=>{if(store.mode!=='none'&&['dashboard','quotes','clients'].includ
 document.addEventListener('click',async event=>{
   const nav=event.target.closest('[data-view]');if(nav){if(leave()){view=nav.dataset.view;dirty=false;settingsDraft=null;if(view==='calculator'){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];}render();}return;}
   const button=event.target.closest('[data-action]');if(!button)return;
+  if(button.dataset.action==='open-slicer'){openSlicer(Number(button.dataset.id));return;}
+  if(button.dataset.action==='close-slicer'){slicerSession?.dialog.close();return;}
+  if(button.dataset.action==='apply-slicer'){
+    const s=slicerSession;if(!s?.result||draft.id!==s.quoteId||!draft.plates[s.index])return;
+    const p=draft.plates[s.index];p.volume=s.result.volumeMl;p.hours=s.result.hours;p.resinMode='volume';p.slicer=clone(s.result);dirty=true;s.dialog.close();render();toast('Volume e tempo aplicados ao lote. Confira o preço da resina por litro.');return;
+  }
   const {action:a,id}=button.dataset;
   if(a==='demo'){store.demo();await refresh();return;}
   if(a==='new'){if(leave()){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];view='calculator';dirty=false;render();}return;}
