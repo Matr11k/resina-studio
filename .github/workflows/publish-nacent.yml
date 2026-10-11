@@ -1,0 +1,53 @@
+name: Publicar Nacent com slicer
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: nacent-pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: szabadkai/slicer
+          ref: a9927a10e303fd60de22c4f892dd39c3d970f53f
+          path: engine
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node nacent-slicer-build.mjs engine
+      - run: npm ci --ignore-scripts
+        working-directory: engine
+      - run: npm run typecheck
+        working-directory: engine
+      - run: npm test
+        working-directory: engine
+      - run: npm run build
+        working-directory: engine
+      - name: Preparar site
+        run: |
+          mkdir -p site/slicer
+          cp index.html site/index.html
+          cp -r engine/dist/. site/slicer/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
