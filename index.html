@@ -18,15 +18,33 @@ body{font-size:12px}.layout{grid-template-columns:182px 1fr}.sidebar{width:182px
 @media(max-width:420px){.main{padding-inline:12px}.sidebar{padding-inline:12px}.nav-item{font-size:9px}.task-columns{grid-template-columns:1fr}.service-prices{grid-template-columns:1fr}.custom-task-controls{gap:10px}.custom-task-controls>.field{width:150px}.custom-task-controls .btn{font-size:10px;padding:9px 8px}.plate-footer span{font-size:8px}.header-actions .btn{font-size:10px;padding-inline:10px}}
 .slicer-launch{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:10px;border-top:1px solid #e2e7ec;padding-top:10px}.slicer-launch small{font-size:11px;color:#657183;line-height:1.4}.slicer-dialog{width:96vw;max-width:none;height:94vh;max-height:none;border:0;border-radius:12px;padding:0;overflow:hidden;background:#f3f5f7}.slicer-dialog[open]{display:flex;flex-direction:column}.slicer-dialog::backdrop{background:#0a1526ba}.slicer-dialog header,.slicer-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#fff;flex-shrink:0}.slicer-dialog header small{display:block;color:#687583;margin-top:3px}.slicer-dialog iframe{flex:1;width:100%;border:0;min-height:0}.slicer-dialog footer{font-size:12px;border-top:1px solid #dfe4e9}.slicer-dialog footer span{max-width:75%;line-height:1.5}@media(max-width:650px){.slicer-dialog{width:100vw;height:100dvh;border-radius:0}.slicer-dialog header,.slicer-dialog footer{padding:8px;flex-wrap:wrap}.slicer-dialog footer span{max-width:100%}.slicer-dialog .btn{font-size:11px}}
 .slicer-launch details{width:100%;margin:0}.slicer-launch details small{display:block;margin-top:6px}
+.project-panel,.plates-panel,.painting-panel{grid-column:1/-1}.project-panel>.fields,.plate>.fields{grid-template-columns:repeat(3,minmax(0,1fr))}.resin-choice,.resin-price-note{grid-column:1/-1}.resin-price-note{font-size:10px;color:#63717b;margin-top:-5px}.printing-tasks{margin-top:13px;border-top:1px solid var(--line);padding-top:12px}.printing-tasks>summary{cursor:pointer;font-size:12px;font-weight:600;color:#365e57}.printing-tasks>.task-columns{margin-top:14px}.paint-toggle{display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer}.paint-toggle input{min-height:0;width:16px;height:16px;accent-color:var(--green)}.painting-body{margin-top:14px}.painting-body .custom-task-controls{margin-top:12px;align-items:end}.painting-body .custom-task-controls>.field{width:280px;max-width:55%}.painting-body>.muted{display:block;margin-top:10px;font-size:10px}.resin-management{display:grid;grid-template-columns:minmax(0,1fr);gap:14px}.resin-management:has(.resin-editor){grid-template-columns:minmax(0,1fr) 350px;align-items:start}.resin-default{margin:0 18px 14px;max-width:420px}.resin-table small{display:block;margin-top:5px;color:#79828b;font-size:10px}.resin-table td{padding:12px}.resin-table .text-btn{display:block;font-size:10px}.resin-inactive{opacity:.65}.inventory-note{font-size:10px;color:#79828b;padding:0 18px 14px;line-height:1.5}.resin-editor h2{font-size:16px;margin:0 0 16px}.resin-editor .fields{grid-template-columns:1fr 1fr}.resin-conversion{font-size:10px;line-height:1.5;color:#365e57}.resin-editor .form-end{display:flex;gap:8px;margin-top:15px}.resin-management .panel-heading p{font-size:10px;color:#79828b}
+@media(max-width:1100px){.resin-management:has(.resin-editor){grid-template-columns:1fr}.resin-editor{max-width:650px}}@media(max-width:650px){.project-panel>.fields,.plate>.fields{grid-template-columns:1fr 1fr}.painting-body .custom-task-controls{flex-wrap:wrap}.painting-body .custom-task-controls>.field{width:100%;max-width:none}.resin-table{min-width:650px}}
 </style></head>
 <body><div id="app"><div class="loading">Preparando seu ateliê…</div></div><div id="toast" role="status" aria-live="polite"></div><div id="print-area"></div><script type="module">// Apenas URL e chave PUBLICÁVEL/anon. Nunca use service_role ou chave secreta.
 const cloudConfig = { url: 'https://bitpvroagwyblnnihqut.supabase.co', key: 'sb_publishable_TyMLTIQmfJqmMt8gkZZMLw_kDWa_5RA' };
+
+function validateResin(value) {
+  const r={...value,brand:String(value.brand??'').trim(),name:String(value.name??'').trim(),type:String(value.type??'').trim(),color:String(value.color??'').trim()};
+  if(!r.name||!r.brand)throw Error('Informe a marca e o nome da resina.');
+  if(!['kg','liter'].includes(r.unit))throw Error('Escolha preço por kg ou por litro.');
+  if(r.price===null||r.price===''||!Number.isFinite(Number(r.price))||Number(r.price)<0)throw Error('Confira o preço da resina.');
+  if(!Number.isFinite(Number(r.density))||Number(r.density)<=0)throw Error('Informe uma densidade maior que zero.');
+  if(r.stockKg!==null&&r.stockKg!==undefined&&r.stockKg!==''&&(!Number.isFinite(Number(r.stockKg))||Number(r.stockKg)<0))throw Error('O stock disponível deve ser zero ou maior.');
+  return {...r,price:Number(r.price),density:Number(r.density),stockKg:r.stockKg===null||r.stockKg===undefined||r.stockKg===''?null:Number(r.stockKg),active:r.active!==false};
+}
+function resinPerLiter(resin) {const r=validateResin(resin);return r.unit==='kg'?r.price*r.density:r.price;}
+function resinSnapshot(resin) {const r=validateResin(resin);return {id:r.id,brand:r.brand,name:r.name,type:r.type,color:r.color,price:r.price,unit:r.unit,density:r.density};}
+function makePlate(settings,label='Lote 1') {
+  const r=(settings.resins??[]).find(r=>r.id===settings.defaultResinId&&r.active!==false);
+  return {label,runs:1,hours:0,resinMode:r?'volume':'slicer',resinCost:0,volume:0,pricePerLiter:r?resinPerLiter(r):settings.resinPerLiter,resinId:r?.id??'',resinSnapshot:r?resinSnapshot(r):null};
+}
 
 const statuses = ['Rascunho', 'Enviado', 'Aprovado', 'Em produção', 'Concluído', 'Recusado', 'Expirado'];
 const defaults = {
   business: 'Nacent', contact: '', currency: 'EUR', losses: 1.25,
   machine: 0.60, rate: 35, pricing: 'markup', minimum: 10,
-  validity: 15, resinName: '', resinPerLiter: 0,
+  validity: 15, resinName: '', resinPerLiter: 0, resins:[],defaultResinId:'',paint:[],
   prep: [
     {name:'Pré-suportado / pronto',cost:0}, {name:'Suportes simples',cost:3},
     {name:'Suportes manuais / trabalhosos',cost:6.5}, {name:'Hollow + furos',cost:4.5},
@@ -38,7 +56,7 @@ const clone = v => structuredClone(v);
 const today = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 function newQuote(settings=defaults) {
   return { id:crypto.randomUUID(), project:'', client:'', contact:'', date:today(), status:'Rascunho', quantity:1,
-    plates:[{label:'Lote 1',runs:1,hours:0,resinMode:'slicer',resinCost:0,volume:0,pricePerLiter:settings.resinPerLiter}],
+    plates:[makePlate(settings)],paintEnabled:false,paintTasks:[],paintExtras:0,
     prep:[],post:0,postTasks:[],extraTasks:[],postMode:'order',extras:0,shippingCost:0,shippingCharge:0,market:null,finalPrice:null,notes:'',
     settings:clone(settings), validity:settings.validity, result:null, revision:0 };
 }
@@ -69,20 +87,21 @@ function calculate(q) {
     else throw Error('Escolha a origem do custo de resina.');
     resin+=raw*factor*runs; hours+=time*runs; machine+=time*runs*machineRate;
   }
-  const taskCost=(v)=>number(v.cost,'o custo da tarefa')*number(v.count??1,'a quantidade da tarefa',1,true)*(v.basis==='piece'?quantity:1);
+  const taskCost=(v,fractional=false)=>number(v.cost,'o custo da tarefa')*number(v.count??1,'a quantidade da tarefa',fractional?0.001:1,!fractional)*(v.basis==='piece'?quantity:1);
   const prep=(q.prep??[]).reduce((sum,v)=>sum+taskCost(v),0);
   const post=Array.isArray(q.postTasks)?q.postTasks.reduce((sum,v)=>sum+taskCost(v),0):number(q.post,'o custo do acabamento')*(q.postMode==='piece'?quantity:1);
   const extras=number(q.extras,'os custos extras')+(q.extraTasks??[]).reduce((sum,v)=>sum+taskCost(v),0);
   const shippingCost=number(q.shippingCost,'o custo de envio');
   const shippingCharge=number(q.shippingCharge,'o frete cobrado');
-  const cost=resin+machine+prep+post+extras;
+  const paint=q.paintEnabled?(q.paintTasks??[]).reduce((sum,v)=>sum+taskCost(v,true),0)+number(q.paintExtras??0,'os custos extras da pintura'):0;
+  const cost=resin+machine+prep+post+extras+paint;
   const cents=value=>Math.round((value+Number.EPSILON)*100)/100;
   const suggested=cents(Math.max(number(s.minimum,'o pedido mínimo'),s.pricing==='margin'?cost/(1-rate):cost*(1+rate)));
   const chosen=q.finalPrice===null||q.finalPrice===''||q.finalPrice===undefined?suggested:cents(number(q.finalPrice,'o preço final'));
   const revenue=chosen+shippingCharge;
   const profit=revenue-cost-shippingCost;
   const market=q.market===null||q.market===''||q.market===undefined?null:number(q.market,'o preço de mercado')*quantity;
-  return {resin,machine,hours,prep,post,extras,cost,suggested,chosen,shippingCost,shippingCharge,total:revenue,
+  return {resin,machine,hours,prep,post,extras,paint,cost,suggested,chosen,shippingCost,shippingCharge,total:revenue,
     profit,margin:revenue>0?profit/revenue:null,unit:chosen/quantity,costUnit:cost/quantity,market,
     difference:market===null?null:chosen-market,minimumApplied:suggested===Number(s.minimum)};
 }
@@ -92,6 +111,7 @@ function validateQuote(q) {
   if(!statuses.includes(q.status)) throw Error('Confira o status.');
   number(q.validity,'a validade em dias',1,true);
   for(const task of q.extraTasks??[])if(!String(task.name??'').trim())throw Error('Dê um nome às tarefas personalizadas.');
+  if(q.paintEnabled)for(const task of q.paintTasks??[])if(!String(task.name??'').trim())throw Error('Dê um nome às tarefas de pintura.');
   return calculate(q);
 }
 function quoteTotal(q) {return q.result??calculate(q);}
@@ -183,11 +203,12 @@ const store=new Store();
 let settings=clone(defaults),quotes=[],view='dashboard',draft=null,dirty=false,busy=false,filter='',search='',settingsDraft=null;
 const app=document.querySelector('#app');
 let slicerSession=null;
+let resinDraft=null;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const money=v=>new Intl.NumberFormat('pt-PT',{style:'currency',currency:settings.currency}).format(Number(v)||0);
 const percent=v=>v===null?'—':`${(v*100).toFixed(1).replace('.',',')}%`;
 const fmtDate=d=>new Date(`${d}T12:00:00`).toLocaleDateString('pt-PT');
-const icon=(name)=>({dashboard:'◫',quotes:'▤',clients:'◉',settings:'⚙',calculator:'＋'}[name]||'◇');
+const icon=(name)=>({dashboard:'◫',quotes:'▤',clients:'◉',resins:'◈',settings:'⚙',calculator:'＋'}[name]||'◇');
 const toast=(message)=>{document.querySelector('#toast').textContent=message;document.querySelector('#toast').classList.add('show');setTimeout(()=>document.querySelector('#toast').classList.remove('show'),5000);};
 function input(label,name,value,type='text',opts='') {const shown=type==='number'&&opts.includes('step="any"')&&Number.isFinite(value)?Number(value.toFixed(6)):value;return `<label class="field"><span>${label}</span><input name="${name}" type="${type}" value="${esc(shown)}" ${opts}></label>`;}
 function select(label,name,value,options){return `<label class="field"><span>${label}</span><select name="${name}">${options.map(o=>`<option value="${esc(o.value??o)}" ${(o.value??o)===value?'selected':''}>${esc(o.label??o)}</option>`).join('')}</select></label>`;}
@@ -196,7 +217,7 @@ function login(error='') {
   app.innerHTML=`<main class="welcome"><div class="welcome-story"><a class="brand"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt="">Nacent</a><div><p class="eyebrow">SEU ATELIÊ. SEU CONTROLE.</p><h1>Da primeira camada<br>ao preço certo.</h1><p>Transforme resina, tempo e trabalho em orçamentos claros. Tenha seus projetos e resultados sempre à mão.</p><div class="welcome-cube"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt=""></div></div><small>IMPRESSÃO 3D EM RESINA</small></div><section class="welcome-form"><p class="eyebrow">BEM-VINDO AO SEU ESPAÇO</p><h2>Vamos organizar<br>o próximo projeto?</h2><p class="muted">Acesse seu ateliê para consultar e salvar seus orçamentos online.</p>${error?`<div class="notice error">${esc(error)}</div>`:''}${store.configured?`<form id="login-form">${input('E-mail','email','','email','required autocomplete="username"')}${input('Senha','password','','password','required autocomplete="current-password"')}<button class="btn primary wide" type="submit">Entrar no meu ateliê →</button></form>`:`<div class="notice">A conexão online ainda está sendo preparada. Você já pode experimentar a ferramenta.</div>`}${action('Experimentar demonstração','demo','btn secondary wide')}<small>A demonstração salva somente neste navegador. Ela não sincroniza com seus outros aparelhos.</small></section></main>`;
 }
 function shell(content,title,subtitle,buttons='') {
-  app.innerHTML=`<div class="layout"><aside class="sidebar"><a class="brand" href="#"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt="">Nacent</a><p class="sidebar-label">MEU ATELIÊ</p><nav>${[['calculator','Calculadora'],['dashboard','Visão geral'],['quotes','Orçamentos'],['clients','Clientes'],['settings','Configurações']].map(([id,label])=>`<button data-view="${id}" class="nav-item ${view===id?'active':''}"><span>${icon(id)}</span>${label}</button>`).join('')}</nav><div class="sidebar-bottom"><div class="profile"><span class="avatar">${esc(settings.business.slice(0,1).toUpperCase())}</span><div><b>${esc(settings.business)}</b><small>${store.mode==='demo'?'Demonstração local':'Conta conectada'}</small></div></div>${action('Sair','logout','text-btn')}</div></aside><main class="main"><div class="topbar"><span>Orçamentos de impressão 3D</span><button data-action="refresh" class="sync">${store.mode==='demo'?'◌ Modo demonstração':'● Dados online · Atualizar'}</button></div>${store.mode==='demo'?'<div class="demo-banner">Demonstração: os dados ficam somente neste navegador. Este modo não sincroniza com seus outros aparelhos.</div>':''}<header class="page-header"><div><h1>${title}</h1><p>${subtitle}</p></div><div class="header-actions">${buttons}</div></header>${content}<footer class="footer"><span>Nacent</span></footer></main></div>`;
+  app.innerHTML=`<div class="layout"><aside class="sidebar"><a class="brand" href="#"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%23162d28%22%2F%3E%3Cpath%20d%3D%22M32%2010%2051%2021v22L32%2054%2013%2043V21z%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3Cpath%20d%3D%22m13%2021%2019%2011%2019-11M32%2032v22%22%20fill%3D%22none%22%20stroke%3D%22%23c1dd85%22%20stroke-width%3D%224%22%2F%3E%3C%2Fsvg%3E%0A" alt="">Nacent</a><p class="sidebar-label">MEU ATELIÊ</p><nav>${[['calculator','Calculadora'],['dashboard','Visão geral'],['quotes','Orçamentos'],['clients','Clientes'],['resins','Resinas'],['settings','Configurações']].map(([id,label])=>`<button data-view="${id}" class="nav-item ${view===id?'active':''}"><span>${icon(id)}</span>${label}</button>`).join('')}</nav><div class="sidebar-bottom"><div class="profile"><span class="avatar">${esc(settings.business.slice(0,1).toUpperCase())}</span><div><b>${esc(settings.business)}</b><small>${store.mode==='demo'?'Demonstração local':'Conta conectada'}</small></div></div>${action('Sair','logout','text-btn')}</div></aside><main class="main"><div class="topbar"><span>Orçamentos de impressão 3D</span><button data-action="refresh" class="sync">${store.mode==='demo'?'◌ Modo demonstração':'● Dados online · Atualizar'}</button></div>${store.mode==='demo'?'<div class="demo-banner">Demonstração: os dados ficam somente neste navegador. Este modo não sincroniza com seus outros aparelhos.</div>':''}<header class="page-header"><div><h1>${title}</h1><p>${subtitle}</p></div><div class="header-actions">${buttons}</div></header>${content}<footer class="footer"><span>Nacent</span></footer></main></div>`;
 }
 function summaryStats(list=quotes) {
   const sold=list.filter(closed),revenue=sold.reduce((a,q)=>a+quoteTotal(q).total,0),profit=sold.reduce((a,q)=>a+quoteTotal(q).profit,0);
@@ -210,6 +231,7 @@ function quoteTable(list) {
 function render() {
   if(store.mode==='none')return login();
   if(view==='calculator')return renderCalculator();
+  if(view==='resins')return renderResins();
   if(view==='settings')return renderSettings();
   if(view==='clients') {
     const clients=new Map();for(const q of quotes){if(q.client){const key=q.client.trim().toLowerCase();if(!clients.has(key))clients.set(key,[]);clients.get(key).push(q);}}
@@ -223,15 +245,44 @@ function render() {
 function filtered(list){return list.filter(q=>(!filter||effectiveStatus(q)===filter)&&`${q.project} ${q.client}`.toLowerCase().includes(search.toLowerCase()));}
 
 function taskEditor(t,group,index,custom=false) {
-  return `<div class="task-editor">${custom?input('Descrição da tarefa',`${group}.${index}.name`,t.name,'text','required placeholder="Ex.: Montagem, ímãs, pintura…"'):''}<div class="task-fields">${input('Custo (€)',`${group}.${index}.cost`,t.cost,'number','min="0" step="0.01" required')}${input('Quantidade da tarefa',`${group}.${index}.count`,t.count??1,'number','min="1" step="1" required')}${select('Aplicar custo',`${group}.${index}.basis`,t.basis??'order',[{value:'order',label:'Por pedido'},{value:'piece',label:'Por peça'}])}</div>${custom?action('Remover tarefa','remove-task','text-btn',String(index)):''}</div>`;
+  const painting=group==='paintTasks';
+  return `<div class="task-editor">${custom?input('Descrição da tarefa',`${group}.${index}.name`,t.name,'text','required placeholder="Ex.: Preparação, pintura, montagem…"'):''}<div class="task-fields">${input('Custo (€)',`${group}.${index}.cost`,t.cost,'number','min="0" step="0.01" required')}${input(painting?'Quantidade / horas':'Quantidade da tarefa',`${group}.${index}.count`,t.count??1,'number',painting?'min="0.001" step="any" required':'min="1" step="1" required')}${select('Aplicar custo',`${group}.${index}.basis`,t.basis??'order',[{value:'order',label:'Por pedido'},{value:'piece',label:'Por peça'}])}</div>${custom&&!painting?action('Remover tarefa','remove-task','text-btn',String(index)):''}</div>`;
 }
 function serviceGroup(group,selected,catalog) {
-  const label=group==='prep'?'Adicionar preparação':'Adicionar pós-processamento';
-  return `<div class="task-group"><select class="add-service-select" data-service-group="${group}" aria-label="${label}"><option value="">＋ ${label}</option>${catalog.map((p,i)=>selected.some(t=>t.name===p.name)?'':`<option value="${i}">${esc(p.name)} · ${money(p.cost)}</option>`).join('')}</select><div class="selected-tasks">${selected.map((t,i)=>`<article class="selected-task"><div class="selected-task-header"><b>${esc(t.name)}</b>${action('×','remove-selected','remove-icon',`${group}:${i}`)}</div>${taskEditor(t,group,i)}</article>`).join('')||'<p class="tasks-empty">Nenhuma tarefa adicionada.</p>'}</div></div>`;
+  const label=group==='prep'?'Adicionar preparação':group==='paintTasks'?'Adicionar tarefa de pintura':'Adicionar pós-processamento';
+  return `<div class="task-group"><select class="add-service-select" data-service-group="${group}" aria-label="${label}"><option value="">＋ ${label}</option>${catalog.map((p,i)=>selected.some(t=>t.name===p.name)?'':`<option value="${i}">${esc(p.name)} · ${money(p.cost)}</option>`).join('')}</select><div class="selected-tasks">${selected.map((t,i)=>`<article class="selected-task"><div class="selected-task-header"><b>${esc(t.name)}</b>${action('×','remove-selected','remove-icon',`${group}:${i}`)}</div>${taskEditor(t,group,i,t.custom===true)}</article>`).join('')||'<p class="tasks-empty">Nenhuma tarefa adicionada.</p>'}</div></div>`;
 }
 function slicerDetails(p) {
   const s=p.slicer;if(!s)return '';const t=s.timing??{};
   return `<details class="optional-fields"><summary>Dados do fatiamento salvo</summary><small>${esc((s.modelNames??[]).filter(Boolean).join(', ')||'Plate preparada')} · ${esc(s.layerCount)} camadas de ${esc(s.layerHeight)} mm</small><small>Consumo original: ${Number(s.volumeMl).toFixed(3)} ml · Tempo original: ${Number(s.hours).toFixed(3)} h</small><small>Exposição: ${esc(t.normalExposure)} s · Base: ${esc(t.bottomLayers)} camadas × ${esc(t.bottomExposure)} s</small><small>Elevação: ${esc(t.liftHeight)} mm · Subida: ${esc(t.liftSpeed)} mm/s · Retorno: ${esc(t.retractSpeed)} mm/s · Espera: ${esc(t.restSeconds)} s</small><small>Importado em ${esc(new Date(s.importedAt).toLocaleString('pt-PT'))}. ${s.manualOverride?'Valores do lote ajustados manualmente após a importação.':'Valores originais do slicer.'}</small></details>`;
+}
+
+function resinSelector(p,i) {
+  const catalog=(settings.resins??[]).filter(r=>r.active!==false||r.id===p.resinId);
+  if(p.resinSnapshot&&!catalog.some(r=>r.id===p.resinId))catalog.push(p.resinSnapshot);
+  return `<label class="field resin-choice"><span>Resina deste lote</span><select data-resin-plate="${i}" aria-label="Resina deste lote"><option value="">Preço manual / escolher resina</option>${catalog.map(r=>{const shown=r.id===p.resinId&&p.resinSnapshot?p.resinSnapshot:r;return `<option value="${esc(r.id)}" ${r.id===p.resinId?'selected':''}>${esc(shown.brand)} · ${esc(shown.name)} · ${money(shown.price)}/${shown.unit==='kg'?'kg':'litro'}</option>`;}).join('')}</select></label>${p.resinSnapshot?`<small class="resin-price-note">${money(p.resinSnapshot.price)}/${p.resinSnapshot.unit==='kg'?'kg':'litro'} · densidade ${p.resinSnapshot.density.toFixed(3).replace('.',',')} g/ml · preço guardado neste orçamento</small>`:''}`;
+}
+function paintingPanel(q,title) {
+  return `<section class="panel form-panel painting-panel">${title('3','Pintura','Tarefas e materiais da pintura ficam separados da impressão.')}<label class="paint-toggle"><input type="checkbox" name="paintEnabled" ${q.paintEnabled?'checked':''}><span>Incluir pintura no orçamento</span></label>${q.paintEnabled?`<div class="painting-body"><h3 class="task-title">Tarefas e custos da pintura</h3>${serviceGroup('paintTasks',q.paintTasks??[],settings.paint??[])}<div class="custom-task-controls">${action('＋ Tarefa personalizada de pintura','add-paint-task','btn secondary')}${input('Tintas, verniz e outros custos por pedido (€)','paintExtras',q.paintExtras??0,'number','min="0" step="0.01" required')}</div><small class="muted">Use “Por peça” para aplicar à quantidade do orçamento. Quantidade / horas aceita valores como 0,5 ou 2,5.</small></div>`:'<p class="tasks-empty">Ative para adicionar pintura a este projeto.</p>'}</section>`;
+}
+function renderResins() {
+  const catalog=settings.resins??[],active=catalog.filter(r=>r.active!==false);
+  const table=catalog.length?`<div class="table-scroll"><table class="resin-table"><thead><tr><th>RESINA</th><th>PREÇO</th><th>DENSIDADE</th><th>STOCK</th><th></th></tr></thead><tbody>${catalog.map(r=>`<tr class="${r.active===false?'resin-inactive':''}"><td><b>${esc(r.name)}</b><small>${esc(r.brand)} · ${esc(r.type)} · ${esc(r.color)}${r.active===false?' · Inativa':''}</small></td><td><b>${money(r.price)}/${r.unit==='kg'?'kg':'litro'}</b><small>${resinPerLiter(r).toFixed(4).replace('.',',')} €/litro</small></td><td>${r.density.toFixed(3).replace('.',',')} g/ml</td><td>${r.stockKg===null||r.stockKg===undefined?'Não informado':r.stockKg.toLocaleString('pt-PT',{maximumFractionDigits:3})+' kg'}</td><td>${action('Editar','edit-resin','text-btn',r.id)}${action(r.active===false?'Ativar':'Desativar','toggle-resin','text-btn',r.id)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><h3>Cadastre suas resinas</h3><p>Selecione uma resina no orçamento para calcular o custo pelo volume do STL.</p></div>';
+  const r=resinDraft;
+  const editor=r?`<section class="panel form-panel resin-editor"><h2>${catalog.some(x=>x.id===r.id)?'Editar resina':'Nova resina'}</h2><form id="resin-form"><div class="fields">${input('Marca','brand',r.brand,'text','required')}${input('Nome da resina','name',r.name,'text','required')}${input('Tipo','type',r.type,'text','placeholder="ABS-Like, Water Washable…"')}${input('Cor','color',r.color)}${input('Densidade (g/ml)','density',r.density,'number','min="0.001" step="any" required')}${input('Preço (€)','price',r.price,'number','min="0" step="any" required')}${select('Preço por','unit',r.unit,[{value:'kg',label:'Quilograma (kg)'},{value:'liter',label:'Litro (L)'}])}${input('Stock disponível (kg)','stockKg',r.stockKg,'number','min="0" step="any" placeholder="Opcional"')}</div><p class="resin-conversion" id="resin-conversion"></p><div class="form-end"><button class="btn primary" type="submit">Salvar resina</button>${action('Cancelar','cancel-resin')}</div></form></section>`:'';
+  shell(`<div class="resin-management"><section class="panel"><div class="panel-heading"><div><h2>Suas resinas</h2><p>Preços e disponibilidade salvos na sua conta.</p></div><span>${active.length} ativa${active.length===1?'':'s'}</span></div><label class="field resin-default"><span>Resina padrão para novos lotes</span><select id="resin-default"><option value="">Escolher no orçamento</option>${active.map(r=>`<option value="${esc(r.id)}" ${settings.defaultResinId===r.id?'selected':''}>${esc(r.brand)} · ${esc(r.name)}</option>`).join('')}</select></label>${table}<p class="inventory-note">Informe o stock disponível manualmente. Fazer um orçamento não baixa o stock. Alterar um preço não muda orçamentos já salvos.</p></section>${editor}</div>`,'Resinas','Cadastre e edite as resinas que você usa na impressão.',action('＋ Adicionar resina','new-resin','btn primary'));
+  updateResinConversion();
+}
+function updateResinConversion() {
+  const el=document.getElementById('resin-conversion');if(!el||!resinDraft)return;
+  try{el.textContent=`Preço para o cálculo: ${resinPerLiter(resinDraft).toFixed(4).replace('.',',')} €/litro${resinDraft.unit==='kg'?' (preço/kg × densidade)':''}.`;}catch{el.textContent='Preencha nome, marca, preço e densidade para conferir o custo por litro.';}
+}
+async function saveResinSettings(next,message) {
+  await store.save('settings',next);settings=next;settingsDraft=null;dirty=false;toast(store.mode==='cloud'?message:'Salvo nesta demonstração local.');
+}
+async function saveResin() {
+  if(busy)return;busy=true;
+  try{const r=validateResin(resinDraft),next=clone(settings);next.resins??=[];const i=next.resins.findIndex(x=>x.id===r.id);if(i<0)next.resins.push(r);else next.resins[i]=r;await saveResinSettings(next,'Resina salva online.');resinDraft=null;renderResins();}catch(e){toast(e.message);}finally{busy=false;}
 }
 
 function renderCalculator() {
@@ -250,17 +301,18 @@ function renderCalculator() {
     </div></section>
     <section class="panel form-panel plates-panel">${title('2','Impressão','Custo e tempo de uma plate, multiplicados pelas repetições.')}
       ${q.plates.map((p,i)=>`<div class="plate"><div class="plate-heading"><b>${esc(p.label)}</b>${q.plates.length>1?action('Remover','remove-plate','text-btn',String(i)):''}</div><div class="fields">
+        ${resinSelector(p,i)}
         ${input('Repetições deste lote',`plates.${i}.runs`,p.runs,'number','min="1" step="1" required')}
         ${input('Tempo por plate (horas)',`plates.${i}.hours`,p.hours,'number','min="0" step="any" required')}
         ${select('Cálculo da resina',`plates.${i}.resinMode`,p.resinMode,[{value:'slicer',label:'Custo do slicer'},{value:'volume',label:'Volume em ml × preço / litro'}])}
-        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="any" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number','min="0" step="0.01" required')}
+        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="any" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number',`min="0" step="any" required ${p.resinId?'readonly':''}`)}
       </div><div class="slicer-launch">${action('◇ Preparar STL no slicer','open-slicer','btn secondary',String(i))}<small>${p.slicer?`${p.slicer.layerCount} camadas · ${esc(p.slicer.layerHeight)} mm · Saturn 3 Ultra${p.slicer.manualOverride?' · Valores ajustados manualmente':''}`:'Saturn 3 Ultra · Orientação, hollow e suportes'}</small>${p.slicer?'<small>Modelos 3D ficam neste navegador. O orçamento salva o consumo, o tempo e os parâmetros.</small>':''}${slicerDetails(p)}</div></div>`).join('')}
       <div class="plate-footer">${action('＋ Adicionar lote','add-plate','btn secondary')}<span>${money(q.settings.machine)}/h · perdas ${q.settings.losses.toFixed(2)}×</span></div>
-    </section>
-    <section class="panel form-panel tasks-panel">${title('3','Tarefas e custos adicionais','Adicione serviços e ajuste o custo por pedido ou por peça.')}
+    <details class="printing-tasks"><summary>Tarefas e custos da impressão</summary>
       <div class="task-columns"><div><h3 class="task-title">Preparação STL</h3>${serviceGroup('prep',q.prep,q.settings.prep)}</div><div><h3 class="task-title">Pós-processamento</h3>${serviceGroup('postTasks',q.postTasks??[],q.settings.post)}</div></div>
       <div class="custom-task-area">${(q.extraTasks??[]).map((t,i)=>taskEditor(t,'extraTasks',i,true)).join('')}<div class="custom-task-controls">${action('＋ Tarefa personalizada','add-task','btn secondary')}${input('Outros custos / embalagem (€)','extras',q.extras,'number','min="0" step="0.01" required')}</div></div>
-    </section>
+        </details></section>
+    ${paintingPanel(q,title)}
     <section class="panel form-panel price-panel">${title('4','Preço e validade')}<div class="fields price-fields">
       ${select('Como definir o lucro','settings.pricing',q.settings.pricing,[{value:'markup',label:'Acréscimo sobre custo'},{value:'margin',label:'Margem sobre venda'}])}
       ${input('Percentual desejado (%)','settings.rate',q.settings.rate,'number','min="0" step="0.1" required')}
@@ -272,7 +324,7 @@ function renderCalculator() {
       ${input('Referência de mercado por peça (€)','market',q.market,'number','min="0" step="0.01" placeholder="Opcional"')}
       <label class="field"><span>Observações para o cliente</span><textarea name="notes" rows="2" placeholder="Prazo, acabamento ou entrega…">${esc(q.notes)}</textarea></label>
     </div></details></section>
-  </div><aside class="result-column"><div id="result"></div><p class="snapshot-note">Custos e tarefas ficam guardados neste orçamento.</p></aside></div></form>`,q.revision?'Editar orçamento':'Novo orçamento','Impressão, tarefas e preço em um só lugar.',`${action('Voltar','back')}${action('Salvar rascunho','save-draft')}${action('Finalizar orçamento','save','btn primary')}`);
+  </div><aside class="result-column"><div id="result"></div><p class="snapshot-note">Custos e tarefas ficam guardados neste orçamento.</p></aside></div></form>`,q.revision?'Editar orçamento':'Novo orçamento','Impressão, pintura e preço em um só lugar.',`${action('Voltar','back')}${action('Salvar rascunho','save-draft')}${action('Finalizar orçamento','save','btn primary')}`);
   updateResult();
 }
 
@@ -280,7 +332,7 @@ function updateResult() {
   const element=document.querySelector('#result');if(!element)return;
   try {
     const r=calculate(draft);
-    element.innerHTML=`<div class="result-card"><p class="eyebrow">RESUMO DO ORÇAMENTO</p><span class="result-label">Total do orçamento</span><strong class="result-total">${money(r.total)}</strong><p>${money(r.unit)} / peça <span>+ ${money(r.shippingCharge)} de frete</span></p><div class="result-profit"><span>Lucro estimado</span><b class="${r.profit<0?'negative':''}">${money(r.profit)}</b><small>Margem efetiva: ${percent(r.margin)}</small></div><div class="breakdown">${[['Resina + perdas',r.resin],['Máquina',r.machine],['Preparação STL',r.prep],['Pós-processamento',r.post],['Extras / embalagem',r.extras]].map(([l,v])=>`<div><span>${l}</span><b>${money(v)}</b></div>`).join('')}<div class="subtotal"><span>Custo de produção</span><b>${money(r.cost)}</b></div><div><span>Preço sugerido sem frete</span><b>${money(r.suggested)}</b></div><div><span>Custo do envio</span><b>${money(r.shippingCost)}</b></div></div>${r.profit<0?'<div class="notice error">Este preço gera prejuízo. Reveja o valor antes de enviar.</div>':''}${r.minimumApplied?'<div class="result-hint">Pedido mínimo aplicado.</div>':''}${r.market!==null?`<div class="result-hint">${r.difference>=0?'Acima':'Abaixo'} da referência de mercado: ${money(Math.abs(r.difference))}</div>`:''}<button class="btn lime wide" type="submit">${busy?'Salvando…':'Finalizar orçamento →'}</button>${action('Imprimir / salvar PDF','print','btn ghost wide')}${draft.revision?action('Duplicar orçamento','duplicate','text-btn wide',draft.id):''}</div><div class="formula-note"><b>${draft.settings.pricing==='markup'?'Acréscimo sobre custo':'Margem sobre venda'}</b><p>${draft.settings.pricing==='markup'?'Custo × (1 + percentual). Um acréscimo de 35% corresponde a uma margem de 25,9% antes do frete.':'Custo ÷ (1 − percentual). A margem é a parcela do preço de venda que sobra após os custos.'}</p></div>`;
+    element.innerHTML=`<div class="result-card"><p class="eyebrow">RESUMO DO ORÇAMENTO</p><span class="result-label">Total do orçamento</span><strong class="result-total">${money(r.total)}</strong><p>${money(r.unit)} / peça <span>+ ${money(r.shippingCharge)} de frete</span></p><div class="result-profit"><span>Lucro estimado</span><b class="${r.profit<0?'negative':''}">${money(r.profit)}</b><small>Margem efetiva: ${percent(r.margin)}</small></div><div class="breakdown">${[['Resina + perdas',r.resin],['Máquina',r.machine],['Preparação STL',r.prep],['Pós-processamento',r.post],['Extras da impressão',r.extras],['Pintura',r.paint??0]].map(([l,v])=>`<div><span>${l}</span><b>${money(v)}</b></div>`).join('')}<div class="subtotal"><span>Custo de produção</span><b>${money(r.cost)}</b></div><div><span>Preço sugerido sem frete</span><b>${money(r.suggested)}</b></div><div><span>Custo do envio</span><b>${money(r.shippingCost)}</b></div></div>${r.profit<0?'<div class="notice error">Este preço gera prejuízo. Reveja o valor antes de enviar.</div>':''}${r.minimumApplied?'<div class="result-hint">Pedido mínimo aplicado.</div>':''}${r.market!==null?`<div class="result-hint">${r.difference>=0?'Acima':'Abaixo'} da referência de mercado: ${money(Math.abs(r.difference))}</div>`:''}<button class="btn lime wide" type="submit">${busy?'Salvando…':'Finalizar orçamento →'}</button>${action('Imprimir / salvar PDF','print','btn ghost wide')}${draft.revision?action('Duplicar orçamento','duplicate','text-btn wide',draft.id):''}</div><div class="formula-note"><b>${draft.settings.pricing==='markup'?'Acréscimo sobre custo':'Margem sobre venda'}</b><p>${draft.settings.pricing==='markup'?'Custo × (1 + percentual). Um acréscimo de 35% corresponde a uma margem de 25,9% antes do frete.':'Custo ÷ (1 − percentual). A margem é a parcela do preço de venda que sobra após os custos.'}</p></div>`;
   }catch(error){element.innerHTML=`<div class="result-card"><h2>Confira os valores</h2><p>${esc(error.message)}</p></div>`;}
 }
 function setPath(target,path,value) {const keys=path.split('.');let parent=target;for(const k of keys.slice(0,-1))parent=parent[k];parent[keys.at(-1)]=value;}
@@ -307,12 +359,12 @@ function absorbQuoteField(target) {
     if(target.checked&&!draft[group].some(x=>x.name===catalog[index].name))draft[group].push({...clone(catalog[index]),count:1,basis:'order'});
     if(!target.checked)draft[group]=draft[group].filter(x=>x.name!==catalog[index].name);
   }
-  else if(target.name){const value=target.type==='number'?(target.value===''?null:Number(target.value)):target.value;setPath(draft,target.name,value);}
+  else if(target.name){const value=target.type==='number'?(target.value===''?null:Number(target.value)):target.type==='checkbox'?target.checked:target.value;setPath(draft,target.name,value);}
   dirty=true;updateResult();
 }
 function renderSettings() {
   settingsDraft??=clone(settings);const edit=settingsDraft;
-  shell(`<form id="settings-form"><section class="panel form-panel"><div class="section-title"><span>01</span><div><h2>Identidade do ateliê</h2><p>Esses dados aparecem no orçamento do cliente.</p></div></div><div class="fields">${input('Nome do ateliê','business',edit.business,'text','required')}${input('Seu contato','contact',edit.contact)}${input('Validade padrão (dias)','validity',edit.validity,'number','min="1" step="1" required')}</div></section><section class="panel form-panel"><div class="section-title"><span>02</span><div><h2>Custos e preço padrão</h2><p>Valores de partida para os próximos projetos.</p></div></div><div class="fields">${input('Fator de perdas de resina','losses',edit.losses,'number','min="1" step="0.01" required')}${input('Custo da máquina (€/hora)','machine',edit.machine,'number','min="0" step="0.01" required')}${input('Pedido mínimo (€)','minimum',edit.minimum,'number','min="0" step="0.01" required')}${select('Cálculo padrão','pricing',edit.pricing,[{value:'markup',label:'Acréscimo sobre custo'},{value:'margin',label:'Margem sobre venda'}])}${input('Percentual padrão (%)','rate',edit.rate,'number','min="0" step="0.1" required')}${input('Nome da resina habitual','resinName',edit.resinName)}${input('Preço da resina habitual (€/litro)','resinPerLiter',edit.resinPerLiter,'number','min="0" step="0.01" required')}</div><div class="inline-info">O custo da máquina pode incluir eletricidade, desgaste do filme, LCD e manutenção. Não inclua esses custos novamente nos extras.</div></section><section class="panel form-panel"><h2>Tabela de serviços</h2><p class="muted">Preparação de arquivo e pós-processamento.</p>${['prep','post'].map(kind=>`<h3 class="task-title">${kind==='prep'?'Preparação STL':'Pós-processamento'}</h3><div class="service-prices">${edit[kind].map((p,i)=>`<div class="service-edit">${input('Nome da tarefa',`${kind}.${i}.name`,p.name,'text','required')}${input('Custo padrão (€)',`${kind}.${i}.cost`,p.cost,'number','min="0" step="0.01" required')}${action('Remover','remove-service','text-btn',`${kind}:${i}`)}</div>`).join('')}</div>${action('＋ Criar item','add-service','btn secondary',kind)}`).join('')}</section><div class="form-end"><button type="submit" class="btn primary">Salvar configurações</button></div></form>`,'Configurações','Defina seus custos uma vez e reaproveite nos próximos orçamentos.',action('Exportar backup','backup'));
+  shell(`<form id="settings-form"><section class="panel form-panel"><div class="section-title"><span>01</span><div><h2>Identidade do ateliê</h2><p>Esses dados aparecem no orçamento do cliente.</p></div></div><div class="fields">${input('Nome do ateliê','business',edit.business,'text','required')}${input('Seu contato','contact',edit.contact)}${input('Validade padrão (dias)','validity',edit.validity,'number','min="1" step="1" required')}</div></section><section class="panel form-panel"><div class="section-title"><span>02</span><div><h2>Custos e preço padrão</h2><p>Valores de partida para os próximos projetos.</p></div></div><div class="fields">${input('Fator de perdas de resina','losses',edit.losses,'number','min="1" step="0.01" required')}${input('Custo da máquina (€/hora)','machine',edit.machine,'number','min="0" step="0.01" required')}${input('Pedido mínimo (€)','minimum',edit.minimum,'number','min="0" step="0.01" required')}${select('Cálculo padrão','pricing',edit.pricing,[{value:'markup',label:'Acréscimo sobre custo'},{value:'margin',label:'Margem sobre venda'}])}${input('Percentual padrão (%)','rate',edit.rate,'number','min="0" step="0.1" required')}${input('Nome da resina habitual','resinName',edit.resinName)}${input('Preço da resina habitual (€/litro)','resinPerLiter',edit.resinPerLiter,'number','min="0" step="0.01" required')}</div><div class="inline-info">O custo da máquina pode incluir eletricidade, desgaste do filme, LCD e manutenção. Não inclua esses custos novamente nos extras.</div></section><section class="panel form-panel"><h2>Tabela de serviços</h2><p class="muted">Preparação de arquivo e pós-processamento.</p>${['prep','post','paint'].map(kind=>`<h3 class="task-title">${kind==='prep'?'Preparação STL':kind==='paint'?'Pintura':'Pós-processamento'}</h3><div class="service-prices">${edit[kind].map((p,i)=>`<div class="service-edit">${input('Nome da tarefa',`${kind}.${i}.name`,p.name,'text','required')}${input('Custo padrão (€)',`${kind}.${i}.cost`,p.cost,'number','min="0" step="0.01" required')}${action('Remover','remove-service','text-btn',`${kind}:${i}`)}</div>`).join('')}</div>${action('＋ Criar item','add-service','btn secondary',kind)}`).join('')}</section><div class="form-end"><button type="submit" class="btn primary">Salvar configurações</button></div></form>`,'Configurações','Defina seus custos uma vez e reaproveite nos próximos orçamentos.',action('Exportar backup','backup'));
 }
 async function saveQuote(finalize=true) {
   if(busy)return;
@@ -342,7 +394,7 @@ async function refresh() {
 function leave(){return !dirty||confirm('Há alterações não salvas. Descartar essas alterações?');}
 setInterval(()=>{if(store.mode!=='none'&&['dashboard','quotes','clients'].includes(view))render();},60000);
 document.addEventListener('click',async event=>{
-  const nav=event.target.closest('[data-view]');if(nav){if(leave()){view=nav.dataset.view;dirty=false;settingsDraft=null;if(view==='calculator'){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];}render();}return;}
+  const nav=event.target.closest('[data-view]');if(nav){if(leave()){view=nav.dataset.view;dirty=false;settingsDraft=null;resinDraft=null;if(view==='calculator'){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];}render();}return;}
   const button=event.target.closest('[data-action]');if(!button)return;
   if(button.dataset.action==='open-slicer'){openSlicer(Number(button.dataset.id));return;}
   if(button.dataset.action==='popout-slicer'){const s=slicerSession;if(s){s.popup=window.open(`./slicer/#nacent=${s.token}`,'nacent-slicer-'+s.token);if(!s.popup)toast('Permita abrir a nova aba para usar a tela cheia.');}return;}
@@ -352,6 +404,11 @@ document.addEventListener('click',async event=>{
     const p=draft.plates[s.index];p.volume=s.result.volumeMl;p.hours=s.result.hours;p.resinMode='volume';p.slicer=clone(s.result);dirty=true;s.dialog.close();render();toast('Volume e tempo aplicados ao lote. Confira o preço da resina por litro.');return;
   }
   const {action:a,id}=button.dataset;
+  if(a==='new-resin'){if(!leave())return;resinDraft={id:crypto.randomUUID(),brand:'',name:'',type:'',color:'',price:null,unit:'kg',density:1.15,stockKg:null,active:true};dirty=false;renderResins();return;}
+  if(a==='edit-resin'){if(!leave())return;resinDraft=clone(settings.resins.find(r=>r.id===id));dirty=false;renderResins();return;}
+  if(a==='cancel-resin'){resinDraft=null;dirty=false;renderResins();return;}
+  if(a==='toggle-resin'){if(busy||!leave())return;busy=true;try{const next=clone(settings),r=next.resins.find(r=>r.id===id);r.active=r.active===false;if(!r.active&&next.defaultResinId===id)next.defaultResinId='';await saveResinSettings(next,'Disponibilidade da resina atualizada online.');resinDraft=null;renderResins();}catch(e){toast(e.message);}finally{busy=false;}return;}
+  if(a==='add-paint-task'){draft.paintTasks??=[];draft.paintTasks.push({name:'',cost:0,count:1,basis:'piece',custom:true});dirty=true;render();return;}
   if(a==='demo'){store.demo();await refresh();return;}
   if(a==='new'){if(leave()){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];view='calculator';dirty=false;render();}return;}
   if(a==='edit'){if(leave()){draft=clone(quotes.find(q=>q.id===id));view='calculator';dirty=false;render();}return;}
@@ -363,7 +420,7 @@ document.addEventListener('click',async event=>{
   if(a==='remove-task'){draft.extraTasks.splice(Number(id),1);dirty=true;render();return;}
   if(a==='add-service'){settingsDraft[id].push({name:'',cost:0});dirty=true;renderSettings();return;}
   if(a==='remove-service'){const [group,index]=id.split(':');settingsDraft[group].splice(Number(index),1);dirty=true;renderSettings();return;}
-  if(a==='add-plate'){draft.plates.push({label:`Lote ${draft.plates.length+1}`,runs:1,hours:0,resinMode:'slicer',resinCost:0,volume:0,pricePerLiter:settings.resinPerLiter});dirty=true;render();return;}
+  if(a==='add-plate'){draft.plates.push(makePlate(settings,`Lote ${draft.plates.length+1}`));dirty=true;render();return;}
   if(a==='remove-plate'){draft.plates.splice(Number(id),1);dirty=true;render();return;}
   if(a==='duplicate'){if(!leave())return;draft=clone(draft);draft.id=crypto.randomUUID();draft.project+=' (cópia)';draft.date=today();draft.status='Rascunho';draft.revision=0;draft.result=null;dirty=true;render();return;}
   if(a==='print'){printQuote();return;}
@@ -373,17 +430,21 @@ document.addEventListener('click',async event=>{
   if(a==='logout'){if(leave()){try{await store.logout();dirty=false;quotes=[];settings=clone(defaults);login();}catch(e){toast('Não foi possível sair. Tente novamente.');}}}
 });
 document.addEventListener('input',event=>{
+  if(event.target.closest('#resin-form')&&event.target.name){const t=event.target;resinDraft[t.name]=t.type==='number'?(t.value===''?null:Number(t.value)):t.value;dirty=true;updateResinConversion();return;}
   if(event.target.id==='search'){search=event.target.value;document.querySelector('#quote-list').innerHTML=quoteTable(filtered([...quotes].sort((a,b)=>b.date.localeCompare(a.date))));return;}
   if(event.target.closest('#quote-form')&&event.target.name){absorbQuoteField(event.target);}
   if(event.target.closest('#settings-form')){const t=event.target;const numeric=t.type==='number';if(t.name)setPath(settingsDraft,t.name,numeric?(t.value===''?null:Number(t.value)):t.value);dirty=true;}
 });
-document.addEventListener('change',event=>{
-  const group=event.target.dataset.serviceGroup;if(group){if(event.target.value!==''){const catalog=group==='prep'?draft.settings.prep:draft.settings.post;draft[group]??=[];draft[group].push({...clone(catalog[Number(event.target.value)]),count:1,basis:'order'});dirty=true;render();}return;}
+document.addEventListener('change',async event=>{
+  if(event.target.dataset.resinPlate!==undefined){const p=draft.plates[Number(event.target.dataset.resinPlate)],id=event.target.value,r=(settings.resins??[]).find(r=>r.id===id);p.resinId=id;p.resinSnapshot=r?resinSnapshot(r):null;if(r){p.pricePerLiter=resinPerLiter(r);p.resinMode='volume';}dirty=true;render();return;}
+  if(event.target.id==='resin-default'){if(busy)return;busy=true;try{const next=clone(settings);next.defaultResinId=event.target.value;await saveResinSettings(next,'Resina padrão salva online.');renderResins();}catch(e){toast(e.message);}finally{busy=false;}return;}
+  const group=event.target.dataset.serviceGroup;if(group){if(event.target.value!==''){const catalog=group==='prep'?draft.settings.prep:group==='paintTasks'?(settings.paint??[]):draft.settings.post;draft[group]??=[];draft[group].push({...clone(catalog[Number(event.target.value)]),count:1,basis:'order'});dirty=true;render();}return;}
   if(event.target.id==='status-filter'){filter=event.target.value;document.querySelector('#quote-list').innerHTML=quoteTable(filtered([...quotes].sort((a,b)=>b.date.localeCompare(a.date))));return;}
-  if(event.target.closest('#quote-form')){absorbQuoteField(event.target);if(event.target.name.endsWith('.resinMode')||event.target.name==='task-choice')render();}
+  if(event.target.closest('#quote-form')){absorbQuoteField(event.target);if(event.target.name.endsWith('.resinMode')||event.target.name==='paintEnabled'||event.target.name==='task-choice')render();}
 });
 document.addEventListener('submit',async event=>{
   event.preventDefault();
+  if(event.target.id==='resin-form'){await saveResin();return;}
   if(event.target.id==='quote-form'){await saveQuote();return;}
   if(event.target.id==='login-form'){
     const data=new FormData(event.target);const button=event.target.querySelector('button');button.disabled=true;button.textContent='Entrando…';
@@ -394,7 +455,7 @@ document.addEventListener('submit',async event=>{
     try {
       const next=clone(settingsDraft);for(const [key,value] of new FormData(event.target)){const numeric=['validity','losses','machine','minimum','rate','resinPerLiter'].includes(key)||key.endsWith('.cost');setPath(next,key,numeric?Number(value):value);}
       if(!next.business.trim())throw Error('Informe o nome do ateliê.');
-      for(const group of ['prep','post']){const seen=new Set();for(const item of next[group]){item.name=item.name.trim();if(!item.name)throw Error('Dê um nome a cada tarefa.');if(seen.has(item.name.toLowerCase()))throw Error('Use nomes diferentes para as tarefas da mesma tabela.');seen.add(item.name.toLowerCase());if(!Number.isFinite(item.cost)||item.cost<0)throw Error('Confira o custo da tarefa.');}}
+      for(const group of ['prep','post','paint']){const seen=new Set();for(const item of next[group]){item.name=item.name.trim();if(!item.name)throw Error('Dê um nome a cada tarefa.');if(seen.has(item.name.toLowerCase()))throw Error('Use nomes diferentes para as tarefas da mesma tabela.');seen.add(item.name.toLowerCase());if(!Number.isFinite(item.cost)||item.cost<0)throw Error('Confira o custo da tarefa.');}}
 
       const test=newQuote(next);calculate(test);if(!Number.isInteger(next.validity)||next.validity<1)throw Error('Confira a validade padrão.');
       await store.save('settings',next);settings=next;settingsDraft=null;dirty=false;render();toast(store.mode==='cloud'?'Configurações salvas online.':'Configurações salvas na demonstração.');
