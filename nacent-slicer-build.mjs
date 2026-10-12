@@ -15,6 +15,12 @@ patch('src/features/app-shell/mount.ts','  // Fallback: load default model','  /
 patch('vite.config.ts',"base: '/slicer/'","base: '/resina-studio/slicer/'");
 patch('vite.config.ts','sourcemap: true','sourcemap: false');
 patch('index.html','<title>SliceLab</title>','<title>Nacent — Slicer Saturn 3 Ultra</title>');
+patch('index.html','<div class="sample-model-grid">','<div class="sample-model-grid"><button class="sample-model-card" data-model="nacent-cube"><span class="sample-model-info"><span class="sample-model-name">Cubo de referência · 1 ml</span><span class="sample-model-desc">10 × 10 × 10 mm · Conferir cálculo</span></span></button>');
+const vertices=[[0,0,0],[10,0,0],[10,10,0],[0,10,0],[0,0,10],[10,0,10],[10,10,10],[0,10,10]];
+const faces=[[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],[1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]];
+const cube=Buffer.alloc(84+50*faces.length);cube.write('Nacent reference cube 10mm / 1ml');cube.writeUInt32LE(faces.length,80);
+faces.forEach((face,i)=>{const a=vertices[face[0]],b=vertices[face[1]],c=vertices[face[2]],u=b.map((v,k)=>v-a[k]),v=c.map((x,k)=>x-a[k]);const normal=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],length=Math.hypot(...normal);[...normal.map(x=>x/length),...a,...b,...c].forEach((x,k)=>cube.writeFloatLE(x,84+50*i+4*k));});
+fs.writeFileSync(path.join(root,'public/models/nacent-cube.stl'),cube);
 fs.writeFileSync(path.join(root,'docs/nacent-integration.md'),'Nacent embeds this pinned SliceLab build for resin quotations. GPU slice volume includes prepared model and supports; time uses configurable exposure, lift/retract speeds and rest. STL projects stay in IndexedDB on this device. Only numeric results and parameters are stored in the quote cloud. No printer-ready export is promised.\n');
 fs.writeFileSync(path.join(root,'public/NACENT-NOTICES.txt'),'Based on SliceLab by szabadkai, declared MIT license. Source: https://github.com/szabadkai/slicer/tree/a9927a10e303fd60de22c4f892dd39c3d970f53f . Dependencies retain their respective licenses. Nacent integration source: https://github.com/Matr11k/resina-studio .\n');
 console.log('Nacent slicer integration applied.');
