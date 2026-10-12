@@ -283,12 +283,12 @@ function openSlicer(index) {
   if(!draft?.plates[index])return;
   const dialog=document.createElement('dialog');dialog.className='slicer-dialog';
   const token=crypto.randomUUID();
-  dialog.innerHTML=`<header><div><b>Preparar ${esc(draft.plates[index].label)}</b><small>Slicer experimental · Estimativas para orçamento</small></div><button type="button" class="btn secondary" data-action="close-slicer">Voltar à calculadora ×</button></header><iframe title="Slicer de resina Nacent" src="./slicer/#nacent=${token}" allow="fullscreen"></iframe><footer><span id="slicer-preview">Carregue o STL, prepare a plate e clique em Fatiar. Depois use “Usar no orçamento”.</span><button type="button" class="btn primary" data-action="apply-slicer" disabled>Aplicar ao lote</button></footer>`;
-  document.body.append(dialog);slicerSession={dialog,index,quoteId:draft.id,token,result:null};
-  dialog.addEventListener('close',()=>{dialog.remove();slicerSession=null;});dialog.showModal();
+  dialog.innerHTML=`<header><div><b>Preparar ${esc(draft.plates[index].label)}</b><small>Slicer experimental · Estimativas para orçamento</small></div><div><button type="button" class="btn secondary" data-action="popout-slicer">Abrir em tela cheia ↗</button> <button type="button" class="btn secondary" data-action="close-slicer">Voltar à calculadora ×</button></div></header><iframe title="Slicer de resina Nacent" src="./slicer/#nacent=${token}" allow="fullscreen"></iframe><footer><span id="slicer-preview">Carregue o STL, prepare a plate e clique em Fatiar. Depois use “Usar no orçamento”.</span><button type="button" class="btn primary" data-action="apply-slicer" disabled>Aplicar ao lote</button></footer>`;
+  document.body.append(dialog);slicerSession={dialog,index,quoteId:draft.id,token,result:null,popup:null};
+  dialog.addEventListener('close',()=>{if(slicerSession?.popup&&!slicerSession.popup.closed)slicerSession.popup.close();dialog.remove();slicerSession=null;});dialog.showModal();
 }
 window.addEventListener('message',event=>{
-  const s=slicerSession;if(!s||event.origin!==location.origin||event.source!==s.dialog.querySelector('iframe').contentWindow||event.data?.token!==s.token)return;
+  const s=slicerSession;if(!s||event.origin!==location.origin||(event.source!==s.dialog.querySelector('iframe').contentWindow&&event.source!==s.popup)||event.data?.token!==s.token)return;
   if(event.data.type==='nacent-slicer-invalid'){s.result=null;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=true;s.dialog.querySelector('#slicer-preview').textContent='A preparação ou os parâmetros mudaram. Fatie novamente quando necessário e clique em Usar no orçamento.';return;}
   if(event.data.type!=='nacent-slicer-result')return;
   try {s.result=validateSlicerImport(event.data.payload);s.dialog.querySelector('#slicer-preview').textContent=`${s.result.volumeMl.toFixed(3)} ml (inclui suportes) · ${s.result.hours.toFixed(2)} h estimadas · ${s.result.layerCount} camadas. O fator de perdas do orçamento continua aplicado.`;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=false;}
@@ -340,6 +340,7 @@ document.addEventListener('click',async event=>{
   const nav=event.target.closest('[data-view]');if(nav){if(leave()){view=nav.dataset.view;dirty=false;settingsDraft=null;if(view==='calculator'){draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];}render();}return;}
   const button=event.target.closest('[data-action]');if(!button)return;
   if(button.dataset.action==='open-slicer'){openSlicer(Number(button.dataset.id));return;}
+  if(button.dataset.action==='popout-slicer'){const s=slicerSession;if(s){s.popup=window.open(`./slicer/#nacent=${s.token}`,'nacent-slicer-'+s.token);if(!s.popup)toast('Permita abrir a nova aba para usar a tela cheia.');}return;}
   if(button.dataset.action==='close-slicer'){slicerSession?.dialog.close();return;}
   if(button.dataset.action==='apply-slicer'){
     const s=slicerSession;if(!s?.result||draft.id!==s.quoteId||!draft.plates[s.index])return;
