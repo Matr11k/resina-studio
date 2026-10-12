@@ -37,7 +37,7 @@ function resinPerLiter(resin) {const r=validateResin(resin);return r.unit==='kg'
 function resinSnapshot(resin) {const r=validateResin(resin);return {id:r.id,brand:r.brand,name:r.name,type:r.type,color:r.color,price:r.price,unit:r.unit,density:r.density};}
 function makePlate(settings,label='Lote 1') {
   const r=(settings.resins??[]).find(r=>r.id===settings.defaultResinId&&r.active!==false);
-  return {label,runs:1,hours:0,resinMode:r?'volume':'slicer',resinCost:0,volume:0,pricePerLiter:r?resinPerLiter(r):settings.resinPerLiter,resinId:r?.id??'',resinSnapshot:r?resinSnapshot(r):null};
+  return {label,runs:1,hours:0,resinMode:'volume',resinCost:0,volume:0,pricePerLiter:r?resinPerLiter(r):0,resinId:r?.id??'',resinSnapshot:r?resinSnapshot(r):null};
 }
 
 const statuses = ['Rascunho', 'Enviado', 'Aprovado', 'Em produção', 'Concluído', 'Recusado', 'Expirado'];
@@ -73,7 +73,7 @@ function calculate(q) {
   if(!['markup','margin'].includes(s.pricing)) throw Error('Escolha como calcular o lucro.');
   if(s.pricing==='margin'&&rate>=1) throw Error('A margem sobre venda precisa ser menor que 100%.');
   if(!q.plates?.length) throw Error('Adicione pelo menos um lote.');
-  let resin=0,machine=0,hours=0;
+  let resin=0,machine=0,hours=0,resinModel=0,resinSupports=0,resinOther=0,hasResinSplit=false;
   for(const p of q.plates) {
     const runs=number(p.runs,'o número de repetições do lote',1,true);
     const time=number(p.hours,'o tempo do lote');
@@ -85,7 +85,11 @@ function calculate(q) {
       raw=volume*price/1000;
     } else if(p.resinMode==='slicer') raw=number(p.resinCost,'o custo de resina no slicer');
     else throw Error('Escolha a origem do custo de resina.');
-    resin+=raw*factor*runs; hours+=time*runs; machine+=time*runs*machineRate;
+    const total=raw*factor*runs;resin+=total;
+    const split=p.slicer;
+    if(p.resinMode==='volume'&&Number.isFinite(split?.modelVolumeMl)&&Number.isFinite(split?.supportVolumeMl)&&Math.abs(split.modelVolumeMl+split.supportVolumeMl-p.volume)<.00001){hasResinSplit=true;resinModel+=split.modelVolumeMl*p.pricePerLiter/1000*factor*runs;resinSupports+=split.supportVolumeMl*p.pricePerLiter/1000*factor*runs;}
+    else resinOther+=total;
+    hours+=time*runs; machine+=time*runs*machineRate;
   }
   const taskCost=(v,fractional=false)=>number(v.cost,'o custo da tarefa')*number(v.count??1,'a quantidade da tarefa',fractional?0.001:1,!fractional)*(v.basis==='piece'?quantity:1);
   const prep=(q.prep??[]).reduce((sum,v)=>sum+taskCost(v),0);
@@ -101,7 +105,7 @@ function calculate(q) {
   const revenue=chosen+shippingCharge;
   const profit=revenue-cost-shippingCost;
   const market=q.market===null||q.market===''||q.market===undefined?null:number(q.market,'o preço de mercado')*quantity;
-  return {resin,machine,hours,prep,post,extras,paint,cost,suggested,chosen,shippingCost,shippingCharge,total:revenue,
+  return {resin,resinModel,resinSupports,resinOther,hasResinSplit,machine,hours,prep,post,extras,paint,cost,suggested,chosen,shippingCost,shippingCharge,total:revenue,
     profit,margin:revenue>0?profit/revenue:null,unit:chosen/quantity,costUnit:cost/quantity,market,
     difference:market===null?null:chosen-market,minimumApplied:suggested===Number(s.minimum)};
 }
@@ -143,7 +147,14 @@ function validateSlicerImport(data) {
   if (!Number.isFinite(data.layerHeight) || data.layerHeight <= 0 || data.layerHeight > 1) throw Error('Altura de camada inválida.');
   const hours = estimateSlaHours(data.layerCount, data.timing);
   if (hours > 10000) throw Error('Confira o tempo estimado.');
-  return {version:1, engine:'SliceLab', printer:'saturn-3-ultra', volumeMl:data.volumeMl, hours,
+  const method=data.method??'slice';if(!['slice','geometry'].includes(method))throw Error('Origem do volume inválida.');
+  let modelVolumeMl=null,supportVolumeMl=null;
+  if(data.modelVolumeMl!==undefined||data.supportVolumeMl!==undefined){
+    modelVolumeMl=data.modelVolumeMl;supportVolumeMl=data.supportVolumeMl;
+    if(!Number.isFinite(modelVolumeMl)||modelVolumeMl<0||!Number.isFinite(supportVolumeMl)||supportVolumeMl<0||Math.abs(modelVolumeMl+supportVolumeMl-data.volumeMl)>Math.max(.00001,data.volumeMl*.000001))throw Error('Confira os volumes da peça e dos suportes.');
+  }
+  if(method==='geometry'&&modelVolumeMl===null)throw Error('A estimativa rápida precisa separar peça e suportes.');
+  return {version:1, engine:'SliceLab', printer:'saturn-3-ultra', volumeMl:data.volumeMl, hours,method,modelVolumeMl,supportVolumeMl,
     layerCount:data.layerCount, layerHeight:data.layerHeight, timing:{...data.timing},
     modelNames:(Array.isArray(data.modelNames)?data.modelNames:[]).slice(0,500).map(s=>String(s).slice(0,200)),
     slicedAt:typeof data.slicedAt==='string'?data.slicedAt.slice(0,40):'', importedAt:new Date().toISOString()};
@@ -254,13 +265,14 @@ function serviceGroup(group,selected,catalog) {
 }
 function slicerDetails(p) {
   const s=p.slicer;if(!s)return '';const t=s.timing??{};
-  return `<details class="optional-fields"><summary>Dados do fatiamento salvo</summary><small>${esc((s.modelNames??[]).filter(Boolean).join(', ')||'Plate preparada')} · ${esc(s.layerCount)} camadas de ${esc(s.layerHeight)} mm</small><small>Consumo original: ${Number(s.volumeMl).toFixed(3)} ml · Tempo original: ${Number(s.hours).toFixed(3)} h</small><small>Exposição: ${esc(t.normalExposure)} s · Base: ${esc(t.bottomLayers)} camadas × ${esc(t.bottomExposure)} s</small><small>Elevação: ${esc(t.liftHeight)} mm · Subida: ${esc(t.liftSpeed)} mm/s · Retorno: ${esc(t.retractSpeed)} mm/s · Espera: ${esc(t.restSeconds)} s</small><small>Importado em ${esc(new Date(s.importedAt).toLocaleString('pt-PT'))}. ${s.manualOverride?'Valores do lote ajustados manualmente após a importação.':'Valores originais do slicer.'}</small></details>`;
+  return `<details class="optional-fields"><summary>${s.method==='geometry'?'Estimativa rápida salva · sem fatiar':'Dados do fatiamento salvo'}</summary>${Number.isFinite(s.modelVolumeMl)?`<small>Peça: ${s.modelVolumeMl.toFixed(3)} ml · Suportes: ${s.supportVolumeMl.toFixed(3)} ml${p.resinSnapshot?' · Peso total estimado: '+(s.volumeMl*p.resinSnapshot.density).toFixed(2)+' g':''}</small>`:''}<small>${esc((s.modelNames??[]).filter(Boolean).join(', ')||'Plate preparada')} · ${esc(s.layerCount)} camadas de ${esc(s.layerHeight)} mm</small><small>Consumo original: ${Number(s.volumeMl).toFixed(3)} ml · Tempo original: ${Number(s.hours).toFixed(3)} h</small><small>Exposição: ${esc(t.normalExposure)} s · Base: ${esc(t.bottomLayers)} camadas × ${esc(t.bottomExposure)} s</small><small>Elevação: ${esc(t.liftHeight)} mm · Subida: ${esc(t.liftSpeed)} mm/s · Retorno: ${esc(t.retractSpeed)} mm/s · Espera: ${esc(t.restSeconds)} s</small><small>Importado em ${esc(new Date(s.importedAt).toLocaleString('pt-PT'))}. ${s.manualOverride?'Valores do lote ajustados manualmente após a importação.':'Valores originais do slicer.'}</small></details>`;
 }
 
+function manualResin(p){return p.resinId==='__manual__'||(!p.resinId&&p.pricePerLiter>0);}
 function resinSelector(p,i) {
   const catalog=(settings.resins??[]).filter(r=>r.active!==false||r.id===p.resinId);
   if(p.resinSnapshot&&!catalog.some(r=>r.id===p.resinId))catalog.push(p.resinSnapshot);
-  return `<label class="field resin-choice"><span>Resina deste lote</span><select data-resin-plate="${i}" aria-label="Resina deste lote"><option value="">Preço manual / escolher resina</option>${catalog.map(r=>{const shown=r.id===p.resinId&&p.resinSnapshot?p.resinSnapshot:r;return `<option value="${esc(r.id)}" ${r.id===p.resinId?'selected':''}>${esc(shown.brand)} · ${esc(shown.name)} · ${money(shown.price)}/${shown.unit==='kg'?'kg':'litro'}</option>`;}).join('')}</select></label>${p.resinSnapshot?`<small class="resin-price-note">${money(p.resinSnapshot.price)}/${p.resinSnapshot.unit==='kg'?'kg':'litro'} · densidade ${p.resinSnapshot.density.toFixed(3).replace('.',',')} g/ml · preço guardado neste orçamento</small>`:''}`;
+  return `<label class="field resin-choice"><span>Resina deste lote</span><select data-resin-plate="${i}" aria-label="Resina deste lote"><option value="" ${!p.resinId&&!manualResin(p)?'selected':''} disabled>Selecione uma resina cadastrada</option><option value="__manual__" ${manualResin(p)?'selected':''}>Outra resina · informar preço manual</option>${catalog.map(r=>{const shown=r.id===p.resinId&&p.resinSnapshot?p.resinSnapshot:r;return `<option value="${esc(r.id)}" ${r.id===p.resinId?'selected':''}>${esc(shown.brand)} · ${esc(shown.name)} · ${money(shown.price)}/${shown.unit==='kg'?'kg':'litro'}</option>`;}).join('')}</select></label>${p.resinSnapshot?`<small class="resin-price-note">${money(p.resinSnapshot.price)}/${p.resinSnapshot.unit==='kg'?'kg':'litro'} · densidade ${p.resinSnapshot.density.toFixed(3).replace('.',',')} g/ml · preço guardado neste orçamento</small>`:''}`;
 }
 function paintingPanel(q,title) {
   return `<section class="panel form-panel painting-panel">${title('3','Pintura','Tarefas e materiais da pintura ficam separados da impressão.')}<label class="paint-toggle"><input type="checkbox" name="paintEnabled" ${q.paintEnabled?'checked':''}><span>Incluir pintura no orçamento</span></label>${q.paintEnabled?`<div class="painting-body"><h3 class="task-title">Tarefas e custos da pintura</h3>${serviceGroup('paintTasks',q.paintTasks??[],settings.paint??[])}<div class="custom-task-controls">${action('＋ Tarefa personalizada de pintura','add-paint-task','btn secondary')}${input('Tintas, verniz e outros custos por pedido (€)','paintExtras',q.paintExtras??0,'number','min="0" step="0.01" required')}</div><small class="muted">Use “Por peça” para aplicar à quantidade do orçamento. Quantidade / horas aceita valores como 0,5 ou 2,5.</small></div>`:'<p class="tasks-empty">Ative para adicionar pintura a este projeto.</p>'}</section>`;
@@ -304,8 +316,8 @@ function renderCalculator() {
         ${resinSelector(p,i)}
         ${input('Repetições deste lote',`plates.${i}.runs`,p.runs,'number','min="1" step="1" required')}
         ${input('Tempo por plate (horas)',`plates.${i}.hours`,p.hours,'number','min="0" step="any" required')}
-        ${select('Cálculo da resina',`plates.${i}.resinMode`,p.resinMode,[{value:'slicer',label:'Custo do slicer'},{value:'volume',label:'Volume em ml × preço / litro'}])}
-        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="any" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number',`min="0" step="any" required ${p.resinId?'readonly':''}`)}
+        ${manualResin(p)?select('Cálculo da resina',`plates.${i}.resinMode`,p.resinMode,[{value:'slicer',label:'Custo do slicer'},{value:'volume',label:'Volume em ml × preço / litro'}]):'<small class="resin-price-note">O preço vem da resina selecionada. Para digitar um preço, escolha Outra resina.</small>'}
+        ${p.resinMode==='slicer'?input('Resina por plate (€)',`plates.${i}.resinCost`,p.resinCost,'number','min="0" step="0.001" required'):input('Volume por plate (ml)',`plates.${i}.volume`,p.volume,'number','min="0" step="any" required')+input('Preço da resina (€/litro)',`plates.${i}.pricePerLiter`,p.pricePerLiter,'number',`min="0" step="any" required ${manualResin(p)?'':'readonly'}`)}
       </div><div class="slicer-launch">${action('◇ Preparar STL no slicer','open-slicer','btn secondary',String(i))}<small>${p.slicer?`${p.slicer.layerCount} camadas · ${esc(p.slicer.layerHeight)} mm · Saturn 3 Ultra${p.slicer.manualOverride?' · Valores ajustados manualmente':''}`:'Saturn 3 Ultra · Orientação, hollow e suportes'}</small>${p.slicer?'<small>Modelos 3D ficam neste navegador. O orçamento salva o consumo, o tempo e os parâmetros.</small>':''}${slicerDetails(p)}</div></div>`).join('')}
       <div class="plate-footer">${action('＋ Adicionar lote','add-plate','btn secondary')}<span>${money(q.settings.machine)}/h · perdas ${q.settings.losses.toFixed(2)}×</span></div>
     <details class="printing-tasks"><summary>Tarefas e custos da impressão</summary>
@@ -332,7 +344,7 @@ function updateResult() {
   const element=document.querySelector('#result');if(!element)return;
   try {
     const r=calculate(draft);
-    element.innerHTML=`<div class="result-card"><p class="eyebrow">RESUMO DO ORÇAMENTO</p><span class="result-label">Total do orçamento</span><strong class="result-total">${money(r.total)}</strong><p>${money(r.unit)} / peça <span>+ ${money(r.shippingCharge)} de frete</span></p><div class="result-profit"><span>Lucro estimado</span><b class="${r.profit<0?'negative':''}">${money(r.profit)}</b><small>Margem efetiva: ${percent(r.margin)}</small></div><div class="breakdown">${[['Resina + perdas',r.resin],['Máquina',r.machine],['Preparação STL',r.prep],['Pós-processamento',r.post],['Extras da impressão',r.extras],['Pintura',r.paint??0]].map(([l,v])=>`<div><span>${l}</span><b>${money(v)}</b></div>`).join('')}<div class="subtotal"><span>Custo de produção</span><b>${money(r.cost)}</b></div><div><span>Preço sugerido sem frete</span><b>${money(r.suggested)}</b></div><div><span>Custo do envio</span><b>${money(r.shippingCost)}</b></div></div>${r.profit<0?'<div class="notice error">Este preço gera prejuízo. Reveja o valor antes de enviar.</div>':''}${r.minimumApplied?'<div class="result-hint">Pedido mínimo aplicado.</div>':''}${r.market!==null?`<div class="result-hint">${r.difference>=0?'Acima':'Abaixo'} da referência de mercado: ${money(Math.abs(r.difference))}</div>`:''}<button class="btn lime wide" type="submit">${busy?'Salvando…':'Finalizar orçamento →'}</button>${action('Imprimir / salvar PDF','print','btn ghost wide')}${draft.revision?action('Duplicar orçamento','duplicate','text-btn wide',draft.id):''}</div><div class="formula-note"><b>${draft.settings.pricing==='markup'?'Acréscimo sobre custo':'Margem sobre venda'}</b><p>${draft.settings.pricing==='markup'?'Custo × (1 + percentual). Um acréscimo de 35% corresponde a uma margem de 25,9% antes do frete.':'Custo ÷ (1 − percentual). A margem é a parcela do preço de venda que sobra após os custos.'}</p></div>`;
+    element.innerHTML=`<div class="result-card"><p class="eyebrow">RESUMO DO ORÇAMENTO</p><span class="result-label">Total do orçamento</span><strong class="result-total">${money(r.total)}</strong><p>${money(r.unit)} / peça <span>+ ${money(r.shippingCharge)} de frete</span></p><div class="result-profit"><span>Lucro estimado</span><b class="${r.profit<0?'negative':''}">${money(r.profit)}</b><small>Margem efetiva: ${percent(r.margin)}</small></div><div class="breakdown">${[...(r.hasResinSplit?[['Resina da peça + perdas',r.resinModel],['Resina dos suportes + perdas',r.resinSupports],...(r.resinOther>0?[['Resina de outros lotes + perdas',r.resinOther]]:[])]:[['Resina + perdas',r.resin]]),['Máquina',r.machine],['Preparação STL',r.prep],['Pós-processamento',r.post],['Extras da impressão',r.extras],['Pintura',r.paint??0]].map(([l,v])=>`<div><span>${l}</span><b>${money(v)}</b></div>`).join('')}<div class="subtotal"><span>Custo de produção</span><b>${money(r.cost)}</b></div><div><span>Preço sugerido sem frete</span><b>${money(r.suggested)}</b></div><div><span>Custo do envio</span><b>${money(r.shippingCost)}</b></div></div>${r.profit<0?'<div class="notice error">Este preço gera prejuízo. Reveja o valor antes de enviar.</div>':''}${r.minimumApplied?'<div class="result-hint">Pedido mínimo aplicado.</div>':''}${r.market!==null?`<div class="result-hint">${r.difference>=0?'Acima':'Abaixo'} da referência de mercado: ${money(Math.abs(r.difference))}</div>`:''}<button class="btn lime wide" type="submit">${busy?'Salvando…':'Finalizar orçamento →'}</button>${action('Imprimir / salvar PDF','print','btn ghost wide')}${draft.revision?action('Duplicar orçamento','duplicate','text-btn wide',draft.id):''}</div><div class="formula-note"><b>${draft.settings.pricing==='markup'?'Acréscimo sobre custo':'Margem sobre venda'}</b><p>${draft.settings.pricing==='markup'?'Custo × (1 + percentual). Um acréscimo de 35% corresponde a uma margem de 25,9% antes do frete.':'Custo ÷ (1 − percentual). A margem é a parcela do preço de venda que sobra após os custos.'}</p></div>`;
   }catch(error){element.innerHTML=`<div class="result-card"><h2>Confira os valores</h2><p>${esc(error.message)}</p></div>`;}
 }
 function setPath(target,path,value) {const keys=path.split('.');let parent=target;for(const k of keys.slice(0,-1))parent=parent[k];parent[keys.at(-1)]=value;}
@@ -340,15 +352,20 @@ function openSlicer(index) {
   if(!draft?.plates[index])return;
   const dialog=document.createElement('dialog');dialog.className='slicer-dialog';
   const token=crypto.randomUUID();
-  dialog.innerHTML=`<header><div><b>Preparar ${esc(draft.plates[index].label)}</b><small>Slicer experimental · Estimativas para orçamento</small></div><div><button type="button" class="btn secondary" data-action="popout-slicer">Abrir em tela cheia ↗</button> <button type="button" class="btn secondary" data-action="close-slicer">Voltar à calculadora ×</button></div></header><iframe title="Slicer de resina Nacent" src="./slicer/#nacent=${token}" allow="fullscreen"></iframe><footer><span id="slicer-preview">Carregue o STL, prepare a plate e clique em Fatiar. Depois use “Usar no orçamento”.</span><button type="button" class="btn primary" data-action="apply-slicer" disabled>Aplicar ao lote</button></footer>`;
+  dialog.innerHTML=`<header><div><b>Preparar ${esc(draft.plates[index].label)}</b><small>Slicer experimental · Estimativas para orçamento</small></div><div><button type="button" class="btn secondary" data-action="popout-slicer">Abrir em tela cheia ↗</button> <button type="button" class="btn secondary" data-action="close-slicer">Voltar à calculadora ×</button></div></header><iframe title="Slicer de resina Nacent" src="./slicer/#nacent=${token}" allow="fullscreen"></iframe><footer><span id="slicer-preview">Carregue a peça e prepare os suportes. Use “Usar peça + suportes” para enviar os volumes direto, sem fatiar.</span><button type="button" class="btn primary" data-action="apply-slicer" disabled>Aplicar ao lote</button></footer>`;
   document.body.append(dialog);slicerSession={dialog,index,quoteId:draft.id,token,result:null,popup:null};
   dialog.addEventListener('close',()=>{if(slicerSession?.popup&&!slicerSession.popup.closed)slicerSession.popup.close();dialog.remove();slicerSession=null;});dialog.showModal();
+}
+function applyPreparedResult(s){
+  const p=draft.plates[s.index];if(!p||s.quoteId!==draft.id)throw Error('Abra a preparação deste orçamento novamente.');
+  p.volume=s.result.volumeMl;p.hours=s.result.hours;p.resinMode='volume';p.slicer=clone(s.result);dirty=true;
+  s.dialog.close();render();toast(s.result.method==='geometry'?'Peça e suportes aplicados diretamente, sem fatiar. Selecione a resina deste lote.':'Fatiamento aplicado ao lote.');
 }
 window.addEventListener('message',event=>{
   const s=slicerSession;if(!s||event.origin!==location.origin||(event.source!==s.dialog.querySelector('iframe').contentWindow&&event.source!==s.popup)||event.data?.token!==s.token)return;
   if(event.data.type==='nacent-slicer-invalid'){s.result=null;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=true;s.dialog.querySelector('#slicer-preview').textContent='A preparação ou os parâmetros mudaram. Fatie novamente quando necessário e clique em Usar no orçamento.';return;}
   if(event.data.type!=='nacent-slicer-result')return;
-  try {s.result=validateSlicerImport(event.data.payload);s.dialog.querySelector('#slicer-preview').textContent=`${s.result.volumeMl.toFixed(3)} ml (inclui suportes) · ${s.result.hours.toFixed(2)} h estimadas · ${s.result.layerCount} camadas. O fator de perdas do orçamento continua aplicado.`;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=false;}
+  try {s.result=validateSlicerImport(event.data.payload);if(s.result.method==='geometry'){applyPreparedResult(s);return;}s.dialog.querySelector('#slicer-preview').textContent=`${s.result.volumeMl.toFixed(3)} ml (inclui suportes) · ${s.result.hours.toFixed(2)} h estimadas · ${s.result.layerCount} camadas. O fator de perdas do orçamento continua aplicado.`;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=false;}
   catch(error){s.result=null;s.dialog.querySelector('#slicer-preview').textContent=error.message;s.dialog.querySelector('[data-action="apply-slicer"]').disabled=true;}
 });
 function absorbQuoteField(target) {
@@ -401,7 +418,7 @@ document.addEventListener('click',async event=>{
   if(button.dataset.action==='close-slicer'){slicerSession?.dialog.close();return;}
   if(button.dataset.action==='apply-slicer'){
     const s=slicerSession;if(!s?.result||draft.id!==s.quoteId||!draft.plates[s.index])return;
-    const p=draft.plates[s.index];p.volume=s.result.volumeMl;p.hours=s.result.hours;p.resinMode='volume';p.slicer=clone(s.result);dirty=true;s.dialog.close();render();toast('Volume e tempo aplicados ao lote. Confira o preço da resina por litro.');return;
+    applyPreparedResult(s);return;
   }
   const {action:a,id}=button.dataset;
   if(a==='new-resin'){if(!leave())return;resinDraft={id:crypto.randomUUID(),brand:'',name:'',type:'',color:'',price:null,unit:'kg',density:1.15,stockKg:null,active:true};dirty=false;renderResins();return;}
@@ -436,7 +453,7 @@ document.addEventListener('input',event=>{
   if(event.target.closest('#settings-form')){const t=event.target;const numeric=t.type==='number';if(t.name)setPath(settingsDraft,t.name,numeric?(t.value===''?null:Number(t.value)):t.value);dirty=true;}
 });
 document.addEventListener('change',async event=>{
-  if(event.target.dataset.resinPlate!==undefined){const p=draft.plates[Number(event.target.dataset.resinPlate)],id=event.target.value,r=(settings.resins??[]).find(r=>r.id===id);p.resinId=id;p.resinSnapshot=r?resinSnapshot(r):null;if(r){p.pricePerLiter=resinPerLiter(r);p.resinMode='volume';}dirty=true;render();return;}
+  if(event.target.dataset.resinPlate!==undefined){const p=draft.plates[Number(event.target.dataset.resinPlate)],id=event.target.value,r=(settings.resins??[]).find(r=>r.id===id);p.resinId=id;p.resinSnapshot=r?resinSnapshot(r):null;if(r){p.pricePerLiter=resinPerLiter(r);p.resinMode='volume';}else if(id!=='__manual__'){p.pricePerLiter=0;p.resinMode='volume';}dirty=true;render();return;}
   if(event.target.id==='resin-default'){if(busy)return;busy=true;try{const next=clone(settings);next.defaultResinId=event.target.value;await saveResinSettings(next,'Resina padrão salva online.');renderResins();}catch(e){toast(e.message);}finally{busy=false;}return;}
   const group=event.target.dataset.serviceGroup;if(group){if(event.target.value!==''){const catalog=group==='prep'?draft.settings.prep:group==='paintTasks'?(settings.paint??[]):draft.settings.post;draft[group]??=[];draft[group].push({...clone(catalog[Number(event.target.value)]),count:1,basis:'order'});dirty=true;render();}return;}
   if(event.target.id==='status-filter'){filter=event.target.value;document.querySelector('#quote-list').innerHTML=quoteTable(filtered([...quotes].sort((a,b)=>b.date.localeCompare(a.date))));return;}
