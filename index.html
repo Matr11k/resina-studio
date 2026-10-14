@@ -344,7 +344,8 @@ function paybackPeriod(entries,start,end,asOf){
 }
 function paybackReports(entries,month,asOf){
  const range=paybackMonth(month),year=month.slice(0,4),months=[];
- for(let n=1;n<=12;n++){const m=paybackMonth(year+'-'+String(n).padStart(2,'0'));if(m.start<=asOf)months.push(paybackPeriod(entries,m.start,m.end,asOf));}
+ const firstMonth=entries.filter(e=>!e.voided&&e.date<=asOf).map(e=>e.date.slice(0,7)).sort()[0]??month;
+ for(let n=1;n<=12;n++){const m=paybackMonth(year+'-'+String(n).padStart(2,'0'));if(m.start<=asOf&&m.start.slice(0,7)>=firstMonth)months.push(paybackPeriod(entries,m.start,m.end,asOf));}
  const weeks=[];let date=paybackWeek(range.start).start;
  while(date<=range.end){const w=paybackWeek(date);weeks.push(paybackPeriod(entries,w.start,w.end,asOf));const d=pbDay(date);d.setUTCDate(d.getUTCDate()+7);date=pbISO(d);}
  return {month:paybackPeriod(entries,range.start,range.end,asOf),months,weeks};
