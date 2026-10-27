@@ -80,6 +80,8 @@ body{font-size:13px}.layout{grid-template-columns:174px minmax(0,1fr)}.sidebar{w
 
 .quote-status-select{font:inherit;font-size:11px;color:#52796a;background:#edf5e7;border:1px solid transparent;border-radius:7px;padding:6px 22px 6px 8px;max-width:145px;cursor:pointer}.quote-status-select.approved{background:#e3eedc;color:#4c705b}.quote-status-select.declined{background:#fbeae7;color:#a15549}.quote-status-select:hover,.quote-status-select:focus-visible{border-color:#7ca98e;outline-offset:2px}.quote-status-select:disabled{opacity:.55;cursor:wait}.table-scroll td:last-child .text-btn{margin-right:8px}
 
+.text-btn.delete-quote{color:#a45b50;font-size:11px}.text-btn.delete-quote:hover{color:#ad3328}.text-btn.delete-quote:disabled{opacity:.5;cursor:wait}
+
 .quick-dialog{width:min(1040px,96vw);max-height:92dvh;border:1px solid #dce6e3;border-radius:14px;padding:0;background:#f5f8f7;color:#243b35;box-shadow:0 20px 80px #0e302533}.quick-dialog[open]{display:flex;flex-direction:column}.quick-dialog::backdrop{background:#102d2877}.quick-dialog>header,.quick-dialog>footer{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 20px;background:white;flex-shrink:0}.quick-dialog>header{border-bottom:1px solid #e1eae6}.quick-dialog header b{font-size:17px}.quick-dialog header p{font-size:11px;margin:5px 0 0;color:#7b8b84}.quick-dialog>footer{border-top:1px solid #e1eae6}.quick-body{padding:18px 20px;overflow:auto;min-height:0}.quick-intro{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:16px}.quick-intro p{font-size:12px;line-height:1.5;margin:0;max-width:580px;color:#71817a}.quick-intro .btn{flex-shrink:0}.quick-model{border:1px solid #dfe8e3;background:white;border-radius:10px;padding:15px;margin-bottom:12px}.quick-model-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.quick-model-heading b{font-size:13px;overflow-wrap:anywhere}.quick-model>small{font-size:10px;display:block;color:#74857c;line-height:1.5;margin:3px 0 12px}.quick-model .fields{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.quick-model .field>span{font-size:10px}.quick-model .field input,.quick-model .field select{font-size:12px;min-height:35px;padding:7px 9px}.quick-model>small.quick-scaled{color:#2f7663;margin:10px 0 0}.quick-time{border:1px solid #dfe8e3;border-radius:9px;padding:12px;background:white;margin-top:16px}.quick-time summary{cursor:pointer;font-size:11px;color:#476858}.quick-time .fields{grid-template-columns:repeat(4,minmax(0,1fr));margin-top:14px;gap:12px}.quick-time .field input{min-height:34px;font-size:12px;padding:7px 9px}.quick-status{font-size:12px;color:#657d70;margin:16px 0 0;line-height:1.5}.quick-result{border:1px solid #cce2d6;border-radius:10px;padding:15px 18px;margin-top:15px;background:#edf7f1}.quick-result>div{display:flex;justify-content:space-between;gap:15px;padding:6px 0;font-size:12px}.quick-result>div b{text-align:right}.quick-result p{font-size:11px;line-height:1.6;color:#597668;margin:12px 0}.quick-result details{border-top:1px solid #cce2d6;padding-top:11px;margin-top:12px}.quick-result summary{cursor:pointer;font-size:11px;font-weight:600}.quick-result .paint-toggle{margin:15px 0 0;background:white;font-size:11px;padding:10px}.quick-dialog button:disabled{opacity:.45;cursor:default}@media(max-width:700px){.quick-dialog{width:100vw;max-height:100dvh;border-radius:0}.quick-dialog>header,.quick-dialog>footer{padding:13px}.quick-body{padding:14px}.quick-model .fields,.quick-time .fields{grid-template-columns:1fr 1fr}.quick-intro{align-items:flex-start;flex-direction:column}.quick-model .field input,.quick-model .field select{font-size:16px;min-height:42px}.quick-dialog>footer .btn{font-size:11px;padding:11px}.quick-dialog header b{font-size:15px}}
 
 .quick-model-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:16px;align-items:center}.quick-model-layout .fields{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.quick-dimension-preview{margin:0;background:#f5f9f7;border:1px solid #e4ede8;border-radius:8px;padding:6px}.quick-dimension-preview svg{display:block;width:100%;max-height:165px}.quick-dimension-preview text{font-size:9px;fill:#3d6958}.quick-dimension-preview figcaption{font-size:9px;color:#71857b;text-align:center;line-height:1.5;padding-bottom:4px}@media(max-width:700px){.quick-model-layout{grid-template-columns:1fr}.quick-model-layout .fields{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-dimension-preview{max-width:240px;justify-self:center;width:100%}}
@@ -572,7 +574,7 @@ class Store {
   async logout() {if(this.mode==='cloud'){const {error}=await this.client.auth.signOut();if(error)throw error;}this.mode='none';this.user=null;this.rows.clear();}
   demo() {this.mode='demo';this.rows.clear();}
   async load() {
-    if(this.mode==='demo')return JSON.parse(localStorage.getItem('resina-demo-v1')||'{"quotes":[],"settings":null}');
+    if(this.mode==='demo'){const db=JSON.parse(localStorage.getItem('resina-demo-v1')||'{"quotes":[],"settings":null}');return {...db,quotes:db.quotes.filter(q=>!q.deletedAt),deletedQuotes:db.quotes.filter(q=>q.deletedAt)};}
     if(this.mode!=='cloud')throw Error('Entre para carregar seus dados.');
     let rows=[];
     for(let offset=0;;offset+=500){
@@ -583,11 +585,11 @@ class Store {
     this.rows=new Map(rows.map(r=>[r.id,r]));
     const production=rows.find(r=>r.id==='zz-production'&&r.kind==='settings');
     const payback=rows.find(r=>r.id==='zz-payback'&&r.kind==='settings');
-    return {production:production?{...production.payload,revision:production.revision}:null,settings:rows.find(r=>r.id==='settings'&&r.kind==='settings')?.payload??null,quotes:rows.filter(r=>r.kind==='quote').map(r=>({...r.payload,revision:r.revision})),payback:payback?{...payback.payload,revision:payback.revision}:null};
+    return {production:production?{...production.payload,revision:production.revision}:null,settings:rows.find(r=>r.id==='settings'&&r.kind==='settings')?.payload??null,deletedQuotes:rows.filter(r=>r.kind==='quote'&&r.payload.deletedAt).map(r=>({...r.payload,revision:r.revision})),quotes:rows.filter(r=>r.kind==='quote'&&!r.payload.deletedAt).map(r=>({...r.payload,revision:r.revision})),payback:payback?{...payback.payload,revision:payback.revision}:null};
   }
   async save(kind,payload,expectedRevision=0) {
     if(this.mode==='demo') {
-      const db=await this.load();
+      const db=JSON.parse(localStorage.getItem('resina-demo-v1')||'{"quotes":[],"settings":null}');
       if(kind==='settings')db.settings=payload;
       else if(kind==='production'){if((db.production?.revision??0)!==expectedRevision)throw Error('A fila mudou em outra aba. Atualize antes de salvar.');db.production={...payload,revision:expectedRevision+1};}
       else if(kind==='payback'){if((db.payback?.revision??0)!==expectedRevision)throw Error('O payback mudou em outra aba. Atualize antes de salvar.');db.payback={...payload,revision:expectedRevision+1};}
@@ -613,7 +615,7 @@ class Store {
 const store=new Store();
 let production=clone(productionDefaults);
 let payback={version:1,entries:[],source:null,revision:0};
-let settings=clone(defaults),quotes=[],view='dashboard',draft=null,dirty=false,busy=false,filter='',search='',settingsDraft=null;
+let settings=clone(defaults),quotes=[],deletedQuotes=[],view='dashboard',draft=null,dirty=false,busy=false,filter='',search='',settingsDraft=null;
 const app=document.querySelector('#app');
 let slicerSession=null;
 let resinDraft=null;
@@ -650,9 +652,20 @@ async function changeQuoteStatus(control){
  catch(error){control.value=effectiveStatus(q);toast(error.message);}
  finally{busy=false;document.querySelectorAll('[data-quote-status]').forEach(el=>{el.disabled=false;el.removeAttribute('aria-busy');});}
 }
+async function moveQuoteToTrash(id,restore=false){
+ if(busy)return;const source=restore?deletedQuotes:quotes,q=source.find(q=>q.id===id);if(!q)return;
+ const hasPayments=(payback.entries??[]).some(entry=>entry.quoteId===id&&!entry.voidedAt);
+ if(!restore&&!confirm('Excluir o orçamento “'+q.project+'”? Ele será movido para a lixeira e sairá da fila de produção.'+(hasPayments?' Os recebimentos já registrados no Payback serão mantidos.':'')+' Você poderá restaurá-lo depois.'))return;
+ const next={...clone(q),updatedAt:new Date().toISOString()};if(restore)delete next.deletedAt;else next.deletedAt=new Date().toISOString();busy=true;
+ document.querySelectorAll('[data-action="delete-quote"],[data-action="restore-quote"],[data-quote-status]').forEach(el=>{el.disabled=true;});
+ try{const revision=await store.save('quote',next,q.revision??0),saved={...next,revision};quotes=quotes.filter(item=>item.id!==id);deletedQuotes=deletedQuotes.filter(item=>item.id!==id);(restore?quotes:deletedQuotes).push(saved);render();toast(restore?'Orçamento restaurado.':'Orçamento movido para a lixeira.');}
+ catch(error){toast(error.message);}
+ finally{busy=false;document.querySelectorAll('[data-action="delete-quote"],[data-action="restore-quote"],[data-quote-status]').forEach(el=>{el.disabled=false;});}
+}
+function renderQuoteTrash(){const list=[...deletedQuotes].sort((a,b)=>b.deletedAt.localeCompare(a.deletedAt));shell(`<section class="panel">${list.length?`<div class="table-scroll"><table><thead><tr><th>PROJETO / CLIENTE</th><th>EXCLUÍDO EM</th><th></th></tr></thead><tbody>${list.map(q=>`<tr><td><b>${esc(q.project)}</b><small>${esc(q.client||'Cliente não informado')}</small></td><td>${esc(new Date(q.deletedAt).toLocaleString('pt-PT'))}</td><td>${action('Restaurar','restore-quote','text-btn',q.id)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty"><h3>Lixeira vazia</h3><p>Orçamentos excluídos aparecem aqui para você poder restaurá-los.</p></div>'}</section>`,'Lixeira de orçamentos','Orçamentos excluídos ficam fora dos totais e da fila. Recebimentos registrados são mantidos.',action('Voltar aos orçamentos','show-quotes'));}
 function quoteTable(list) {
   if(!list.length)return `<div class="empty"><span class="empty-symbol">◇</span><h3>${quotes.length?'Nenhum orçamento encontrado':'Seu próximo projeto começa aqui'}</h3><p>${quotes.length?'Experimente outro nome ou status.':'Crie um orçamento e veja os custos e o lucro antes de combinar o preço.'}</p>${action('＋ Criar orçamento','new','btn primary')}</div>`;
-  return `<div class="table-scroll"><table><thead><tr><th>PROJETO / CLIENTE</th><th>DATA</th><th>STATUS</th><th>TOTAL</th><th>LUCRO EST.</th><th></th></tr></thead><tbody>${list.map(q=>{const r=quoteTotal(q);return `<tr><td><b>${esc(q.project)}</b><small>${esc(q.client||'Cliente não informado')} · ${q.quantity} peça${q.quantity>1?'s':''}</small></td><td>${fmtDate(q.date)}</td><td>${quoteStatusSelect(q)}<small>Validade: ${fmtDate(expiryDate(q))}</small></td><td><b>${money(r.total)}</b></td><td class="${r.profit<0?'negative':''}">${money(r.profit)}</td><td><button class="text-btn" data-action="edit" data-id="${q.id}" aria-label="Abrir ${esc(q.project)}">Abrir ↗</button>${closed(q)?`<button type="button" class="text-btn" data-action="quote-payment" data-id="${q.id}">Recebimento</button>`:''}</td></tr>`;}).join('')}</tbody></table></div>`;
+  return `<div class="table-scroll"><table><thead><tr><th>PROJETO / CLIENTE</th><th>DATA</th><th>STATUS</th><th>TOTAL</th><th>LUCRO EST.</th><th></th></tr></thead><tbody>${list.map(q=>{const r=quoteTotal(q);return `<tr><td><b>${esc(q.project)}</b><small>${esc(q.client||'Cliente não informado')} · ${q.quantity} peça${q.quantity>1?'s':''}</small></td><td>${fmtDate(q.date)}</td><td>${quoteStatusSelect(q)}<small>Validade: ${fmtDate(expiryDate(q))}</small></td><td><b>${money(r.total)}</b></td><td class="${r.profit<0?'negative':''}">${money(r.profit)}</td><td><button class="text-btn" data-action="edit" data-id="${q.id}" aria-label="Abrir ${esc(q.project)}">Abrir ↗</button>${closed(q)?`<button type="button" class="text-btn" data-action="quote-payment" data-id="${q.id}">Recebimento</button>`:''}<button type="button" class="text-btn delete-quote" data-action="delete-quote" data-id="${esc(q.id)}" aria-label="Excluir ${esc(q.project)}" ${busy?'disabled':''}>Excluir</button></td></tr>`;}).join('')}</tbody></table></div>`;
 }
 function render() {
   if(store.mode==='none')return login();
@@ -661,13 +674,14 @@ function render() {
   if(view==='settings')return renderSettings();
   if(view==='payback')return paybackUI.render();
   if(view==='production')return productionUI.render();
+  if(view==='quote-trash')return renderQuoteTrash();
   if(view==='clients') {
     const clients=new Map();for(const q of quotes){if(q.client){const key=q.client.trim().toLowerCase();if(!clients.has(key))clients.set(key,[]);clients.get(key).push(q);}}
     const cards=[...clients.values()].map(list=>`<article class="client-card"><span class="avatar light">${esc(list[0].client.slice(0,1))}</span><h3>${esc(list[0].client)}</h3><p class="muted">${esc(list.find(q=>q.contact)?.contact||'Sem contato informado')}</p><div class="client-meta"><span>${list.length} orçamento${list.length>1?'s':''}</span><b>${money(list.filter(closed).reduce((a,q)=>a+quoteTotal(q).total,0))}</b></div><button class="text-btn" data-action="client-history" data-id="${esc(list[0].client)}">Ver histórico →</button></article>`).join('');
     return shell(`<div class="client-grid">${cards||'<div class="empty"><h3>Seus clientes aparecem aqui</h3><p>Informe o cliente ao salvar um orçamento para reunir o histórico dele.</p></div>'}</div>`,'Clientes','Clientes e histórico de pedidos.',action('＋ Novo orçamento','new','btn primary'));
   }
   const list=[...quotes].sort((a,b)=>b.date.localeCompare(a.date));
-  if(view==='quotes')return shell(`<section class="panel"><div class="filterbar"><label class="search"><span>⌕</span><input id="search" placeholder="Buscar projeto ou cliente" value="${esc(search)}" aria-label="Buscar projeto ou cliente"></label><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option>${statuses.map(s=>`<option ${filter===s?'selected':''}>${s}</option>`).join('')}</select><span id="count">${quotes.length} registros</span></div><div id="quote-list">${quoteTable(filtered(list))}</div></section>`,'Orçamentos','Consulte, edite ou duplique seus orçamentos.',`${action('Exportar backup','backup')}${action('＋ Novo orçamento','new','btn primary')}`);
+  if(view==='quotes')return shell(`<section class="panel"><div class="filterbar"><label class="search"><span>⌕</span><input id="search" placeholder="Buscar projeto ou cliente" value="${esc(search)}" aria-label="Buscar projeto ou cliente"></label><select id="status-filter" aria-label="Filtrar por status"><option value="">Todos os status</option>${statuses.map(s=>`<option ${filter===s?'selected':''}>${s}</option>`).join('')}</select><span id="count">${quotes.length} registros</span></div><div id="quote-list">${quoteTable(filtered(list))}</div></section>`,'Orçamentos','Consulte, edite ou duplique seus orçamentos.',`${action('Lixeira'+(deletedQuotes.length?' ('+deletedQuotes.length+')':''),'show-quote-trash')}${action('Exportar backup','backup')}${action('＋ Novo orçamento','new','btn primary')}`);
   shell(`${summaryStats()}<div class="dashboard-grid"><section class="panel"><div class="panel-heading"><div><h2>Últimos orçamentos</h2><p>Do primeiro cálculo ao pedido concluído.</p></div><button class="text-btn" data-view="quotes">Ver todos →</button></div>${quoteTable(list.slice(0,5))}</section><aside class="tip-card"><p class="eyebrow">PRECIFICAR COM CLAREZA</p><h2>Cada lote tem<br>seu próprio custo.</h2><p>Várias peças na mesma plate compartilham o tempo de máquina. Lotes diferentes podem ter tempos e consumos diferentes.</p><div class="tip-rule">RESINA + TEMPO + TRABALHO</div>${action('Calcular um projeto →','new','btn lime')}</aside></div>`,'Visão geral','Uma visão clara dos projetos e dos resultados.',action('＋ Novo orçamento','new','btn primary'));
 }
 function filtered(list){return list.filter(q=>(!filter||effectiveStatus(q)===filter)&&`${q.project} ${q.client}`.toLowerCase().includes(search.toLowerCase()));}
@@ -910,7 +924,7 @@ const productionUI=createProductionUI({getData:()=>({production,quotes}),saveDat
 const paybackUI=createPaybackUI({getData:()=>({payback,quotes}),saveData:async next=>{if(store.mode==='cloud'&&!store.rows.has('settings'))await store.save('settings',settings);const revision=await store.save('payback',next,payback.revision??0);payback={...next,revision};},shell,money,escape:esc,today,toast,download,setDirty:value=>{dirty=value;}});
 async function refresh() {
   if(dirty&&!confirm('Você tem alterações não salvas. Descartar e atualizar os dados?'))return;
-  try {const db=await store.load();settings=db.settings?{...clone(defaults),...db.settings}:clone(defaults);quotes=db.quotes;production=db.production??clone(productionDefaults);payback=db.payback??{version:1,entries:[],source:null,revision:0};dirty=false;view=['payback','production'].includes(view)?view:'calculator';draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];render();}catch(error){toast(error.message);}
+  try {const db=await store.load();settings=db.settings?{...clone(defaults),...db.settings}:clone(defaults);quotes=db.quotes;deletedQuotes=db.deletedQuotes??[];production=db.production??clone(productionDefaults);payback=db.payback??{version:1,entries:[],source:null,revision:0};dirty=false;view=['payback','production','quote-trash'].includes(view)?view:'calculator';draft=newQuote(settings);draft.postTasks=settings.post.length?[{...clone(settings.post[0]),count:1,basis:'order'}]:[];render();}catch(error){toast(error.message);}
 }
 function leave(){return !dirty||confirm('Há alterações não salvas. Descartar essas alterações?');}
 setInterval(()=>{if(!busy&&store.mode!=='none'&&['dashboard','quotes','clients'].includes(view))render();},60000);
@@ -928,6 +942,8 @@ document.addEventListener('click',async event=>{
     applyPreparedResult(s);return;
   }
   const {action:a,id}=button.dataset;
+  if(a==='delete-quote'||a==='restore-quote'){await moveQuoteToTrash(id,a==='restore-quote');return;}
+  if(a==='show-quote-trash'||a==='show-quotes'){if(leave()){view=a==='show-quote-trash'?'quote-trash':'quotes';dirty=false;render();}return;}
   if(a==='quote-payment'){if(!leave())return;view='payback';dirty=false;paybackUI.render();await paybackUI.action('receive-quote',id);return;}
   if(a==='new-resin'){if(!leave())return;resinDraft={id:crypto.randomUUID(),brand:'',name:'',type:'',color:'',price:null,unit:'kg',density:1.15,stockKg:null,active:true};dirty=false;renderResins();return;}
   if(a==='edit-resin'){if(!leave())return;resinDraft=clone(settings.resins.find(r=>r.id===id));dirty=false;renderResins();return;}
@@ -949,10 +965,10 @@ document.addEventListener('click',async event=>{
   if(a==='remove-plate'){draft.plates.splice(Number(id),1);dirty=true;render();return;}
   if(a==='duplicate'){if(!leave())return;draft=clone(draft);draft.id=crypto.randomUUID();draft.project+=' (cópia)';draft.date=today();draft.status='Rascunho';draft.revision=0;draft.result=null;dirty=true;render();return;}
   if(a==='print'){printQuote();return;}
-  if(a==='backup'){download(`resina-studio-backup-${today()}.json`,JSON.stringify({version:2,exportedAt:new Date().toISOString(),settings,quotes,payback,production},null,2));toast('Backup exportado. Guarde o arquivo em um lugar seguro.');return;}
+  if(a==='backup'){download(`resina-studio-backup-${today()}.json`,JSON.stringify({version:2,exportedAt:new Date().toISOString(),settings,quotes,deletedQuotes,payback,production},null,2));toast('Backup exportado. Guarde o arquivo em um lugar seguro.');return;}
   if(a==='refresh'){await refresh();return;}
   if(a==='client-history'){search=id;filter='';view='quotes';render();return;}
-  if(a==='logout'){if(leave()){try{await store.logout();dirty=false;quotes=[];production=clone(productionDefaults);payback={version:1,entries:[],source:null,revision:0};settings=clone(defaults);login();}catch(e){toast('Não foi possível sair. Tente novamente.');}}}
+  if(a==='logout'){if(leave()){try{await store.logout();dirty=false;quotes=[];deletedQuotes=[];production=clone(productionDefaults);payback={version:1,entries:[],source:null,revision:0};settings=clone(defaults);login();}catch(e){toast('Não foi possível sair. Tente novamente.');}}}
 });
 document.addEventListener('input',event=>{
   if(event.target.closest('#resin-form')&&event.target.name){const t=event.target;resinDraft[t.name]=t.type==='number'?(t.value===''?null:Number(t.value)):t.value;dirty=true;updateResinConversion();return;}
